@@ -1,0 +1,40 @@
+{
+  "name": "jtx-cstb-trust",
+  "version": "0.1.0",
+  "description": "JTX-CSTB Trust Protocol - Verified Human-Compute Attestations on Solana",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jett22JOE/JTX-CSTB.TRUST.DEPIN"
+  },
+  "scripts": {
+    "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
+    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "test": "anchor test",
+    "build": "anchor build",
+    "deploy:devnet": "anchor deploy --provider.cluster devnet",
+    "deploy:mainnet": "anchor deploy --provider.cluster mainnet",
+    "initialize:devnet": "ts-node scripts/initialize.ts --cluster devnet",
+    "deploy-optx:devnet": "ts-node scripts/deploy-optx.ts --cluster devnet"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/spl-token": "^0.4.0",
+    "@solana/web3.js": "^1.91.0"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.5",
+    "@types/chai": "^4.3.14",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.0",
+    "chai": "^4.4.1",
+    "mocha": "^10.3.0",
+    "prettier": "^3.2.5",
+    "ts-mocha": "^10.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

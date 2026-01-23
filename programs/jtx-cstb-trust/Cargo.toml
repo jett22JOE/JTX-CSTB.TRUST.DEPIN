@@ -1,0 +1,23 @@
+[package]
+name = "jtx-cstb-trust"
+version = "0.1.0"
+description = "JTX-CSTB Trust Protocol - Verified Human-Compute Attestations on Solana"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/jett22JOE/JTX-CSTB.TRUST.DEPIN"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "jtx_cstb_trust"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = { version = "0.30.1", features = ["init-if-needed"] }
+anchor-spl = { version = "0.30.1", features = ["token", "token_2022"] }
+solana-program = "1.18"

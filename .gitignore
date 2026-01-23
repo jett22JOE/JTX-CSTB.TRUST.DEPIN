@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+target/
+dist/
+.anchor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Solana
+test-ledger/
+.env
+*.pem
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Keys (never commit!)
+*.json.bak
+id.json
+keypair.json
+
+# Deployment info (optional - may want to track)
+# deployments/
+
+# TypeScript
+*.tsbuildinfo
