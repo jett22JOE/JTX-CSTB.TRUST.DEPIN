@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_2022::{self, MintTo, Token2022};
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF");
 
 /// JTX-CSTB Trust Protocol v2.0.0
 ///

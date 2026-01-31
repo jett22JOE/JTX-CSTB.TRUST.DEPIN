@@ -2,12 +2,25 @@
 
 **Verified Human-Compute Attestations on Solana**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Solana](https://img.shields.io/badge/Solana-Anchor%200.30-blue)](https://www.anchor-lang.com/)
+[![Solana](https://img.shields.io/badge/Solana-Devnet-9945FF?style=flat&logo=solana)](https://explorer.solana.com/address/79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF?cluster=devnet)
+[![Anchor](https://img.shields.io/badge/Anchor-0.30.1-blue)](https://anchor-lang.com)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Security](https://img.shields.io/badge/Security-ASTRO.KNOTS%20Verified-brightgreen)](.)
 
-A DePIN collaboration protocol that combines **JETT OPTICS** gaze-based Proof-of-Attention with **CompuStable's** computational proofs to create verified human-compute attestations on-chain. This protocol enables $JTX holders to mint **$OPTX** tokens through verified identity attestations.
+## Devnet Deployment
+
+| Field | Value |
+|-------|-------|
+| **Program ID** | `79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF` |
+| **Network** | Solana Devnet |
+| **Upgrade Authority** | `FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H` |
+| **Explorer** | [View on Solana Explorer](https://explorer.solana.com/address/79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF?cluster=devnet) |
+
+---
 
 ## Overview
+
+JTX-CSTB Trust Protocol combines **JETT OPTICS** gaze-based Proof-of-Attention with **CompuStable's** computational proofs to create verified human-compute attestations on-chain. This enables $JTX holders to mint **$OPTX** tokens through verified identity attestations.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -19,7 +32,7 @@ A DePIN collaboration protocol that combines **JETT OPTICS** gaze-based Proof-of
 │                          ┌─────────┴─────────┐                          │
 │                          ▼                   ▼                          │
 │               Submit Gaze Attestation   Submit Compute Proof            │
-│               (AGT hash + vectors)      (CSTB hash + difficulty)        │
+│               (AGT<>markov chain)       (CSTB hash + difficulty)        │
 │                          │                   │                          │
 │                          └─────────┬─────────┘                          │
 │                                    │                                     │
@@ -28,286 +41,281 @@ A DePIN collaboration protocol that combines **JETT OPTICS** gaze-based Proof-of
 │                          (Create permanent record)                       │
 │                                    │                                     │
 │                                    ▼                                     │
-│                          Combined Entropy ──► UserEntropy Account       │
-│                                    │                                     │
-│                                    ▼                                     │
-│                          Entropy Unlocks ──► $OPTX Minting Allowance    │
-│                                    │                                     │
-│                                    ▼                                     │
-│                          mint_optx() ──► User Receives $OPTX            │
+│                          Combined Entropy ──► $OPTX Minting Allowance   │
 │                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Why This Matters
+---
 
-| Feature | Description |
-|---------|-------------|
-| **Anti-bot** | Real gaze patterns can't be spoofed by bots |
-| **Anti-sybil** | Combines two independent verification mechanisms |
-| **Cross-DePIN** | Creates interoperable attestations between networks |
-| **Token Utility** | $JTX → attestation → $OPTX minting pathway |
-| **Proof-of-Attention** | Rewards genuine human engagement |
+## AARON Protocol
+
+**A**synchronous **A**udit **R**AG **O**ptical **N**ode
+
+AARON is the audit trail protocol that ensures all AGT (Adaptive Gaze Tensor) attestations maintain integrity across the DePIN network:
+
+### Core Principles
+
+| Principle | Description |
+|-----------|-------------|
+| **Asynchronous** | Off-chain verification before on-chain submission |
+| **Audit** | Complete trace of all gaze attestations via AGT<>markov chain proofs |
+| **RAG** | Retrieval-Augmented Generation for historical pattern analysis |
+| **Optical** | Cryptographic binding between gaze patterns and wallet identity |
+| **Node** | DePIN mesh network for distributed attestation verification |
+
+### AARON Flow Architecture
+
+```
+User Gaze Capture (COG/EMO/ENV)
+         │
+         ▼
+┌─────────────────────────┐
+│   HEDGEHOG MCP Server   │  ◄── Grok 4.1 Fast Reasoning
+│   (Off-chain Verify)    │
+└───────────┬─────────────┘
+            │
+            ▼
+┌─────────────────────────┐
+│    AARON Audit Node     │  ◄── AGT<>Markov Chain Proofs
+│   (Log & Validate)      │
+└───────────┬─────────────┘
+            │
+            ▼
+┌─────────────────────────┐
+│   JTX-CSTB On-Chain     │  ◄── Solana Devnet
+│   (Mint $OPTX)          │      79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF
+└─────────────────────────┘
+```
+
+---
+
+## JETT DePIN 5-Digit Polynomial
+
+Users create a unique 5-position polynomial pattern by gazing at AGT regions:
+
+| Tensor | Code | Description |
+|--------|------|-------------|
+| **COG** | 1 | Cognitive - Visual search, decision-making, focus patterns |
+| **EMO** | 2 | Emotional - Saccade variations from emotional state |
+| **ENV** | 3 | Environmental - Lighting, device context, ambient factors |
+
+**Example Polynomial:** `13211` = COG → ENV → EMO → COG → COG
+
+This polynomial becomes part of the AGT<>markov chain proof for on-chain attestation.
+
+---
 
 ## Token Ecosystem
 
 | Token | Purpose | Contract |
 |-------|---------|----------|
-| **$JTX** | Ecosystem participation proof | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` (mainnet) |
-| **$CSTB** | Computational proof minting | `4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL` (devnet) |
-| **$OPTX** | Attestation reward token | Token-2022 SPL (22M supply) |
+| **$JTX** | Ecosystem participation | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` (mainnet) |
+| **$CSTB** | Computational proofs | `4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL` (devnet) |
+| **$OPTX** | Attestation rewards | Token-2022 SPL (22M supply) |
 
-## Quick Start
+### $OPTX Minting Formula
+
+```
+optx_allowance = (gaze_entropy + compute_entropy) * difficulty * optx_per_entropy / 1000
+```
+
+---
+
+## Protocol Instructions
+
+| Instruction | Description |
+|-------------|-------------|
+| `initialize` | Initialize protocol with token mints and configuration |
+| `create_user_entropy` | Create entropy tracking account for new user |
+| `initiate_handshake` | Start new attestation handshake (1hr expiry) |
+| `submit_gaze_attestation` | Submit AGT<>markov chain proof (COG/EMO/ENV vectors) |
+| `submit_compute_proof` | Submit computational proof (CSTB hash + difficulty) |
+| `finalize_attestation` | Combine proofs, create permanent record, calculate OPTX allowance |
+| `mint_optx` | Mint $OPTX tokens based on accumulated entropy |
+| `verify_attestation` | Check if attestation is valid |
+| `revoke_attestation` | Invalidate an attestation |
+| `close_handshake` | Reclaim rent after expiry/completion |
+| `set_paused` | Emergency pause protocol (authority only) |
+
+---
+
+## Security Audit
+
+**Auditor:** HEDGEHOG MCP - JOE Agentic Security Auditor
+**Model:** Grok 4.1 Fast Reasoning
+**Date:** 2026-01-30
+**Status:** ASTRO.KNOTS Verified and Approved
+
+### Security Fixes Applied (v2.0.0)
+
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| CRITICAL | Arithmetic overflow in allowance calc | u128 intermediate calculations |
+| CRITICAL | Double-mint race condition | Deduct allowance BEFORE CPI |
+| HIGH | Double-finalization | `finalized` flag check |
+| HIGH | Replay attacks | `claimed` flag check |
+| HIGH | No emergency stop | `paused` flag + `set_paused()` |
+| MEDIUM | Entropy overflow | Cap at 1 billion |
+
+---
+
+## Development
 
 ### Prerequisites
 
-- [Rust](https://rustup.rs/) 1.70+
-- [Solana CLI](https://docs.solana.com/cli/install-solana-cli-tools) 1.18+
-- [Anchor](https://www.anchor-lang.com/docs/installation) 0.30+
-- [Node.js](https://nodejs.org/) 18+
-- [Yarn](https://yarnpkg.com/)
+- Rust 1.75+
+- Solana CLI 1.18+
+- Anchor 0.30.1+
+- Node.js 18+
 
-### Installation
+### Build & Deploy
 
 ```bash
 # Clone repository
-git clone https://github.com/jett22JOE/JTX-CSTB.TRUST.DEPIN
+git clone https://github.com/jett22JOE/JTX-CSTB.TRUST.DEPIN.git
 cd JTX-CSTB.TRUST.DEPIN
 
 # Install dependencies
 yarn install
 
-# Build the program
+# Build program
 anchor build
 
-# Run tests
-anchor test
+# Configure Solana CLI for devnet
+solana config set --url devnet
+solana config set --keypair /path/to/keypair.json
+
+# Deploy to devnet
+anchor deploy --provider.cluster devnet
 ```
 
-### Deployment
+---
 
-```bash
-# 1. Deploy $OPTX token (Token-2022)
-yarn deploy-optx:devnet
+## Integration
 
-# 2. Deploy the program
-yarn deploy:devnet
+### Frontend SDK
 
-# 3. Initialize the protocol
-yarn initialize:devnet
+```typescript
+import {
+  JTXCSTBClient,
+  submitGazeAttestation,
+  JTX_CSTB_PROGRAM_ID
+} from '@/lib/solana/jtx-cstb-client'
+
+// Program ID: 79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF
+
+// Submit gaze attestation after HEDGEHOG verification
+const result = await submitGazeAttestation(
+  walletAddress,
+  ['COG', 'ENV', 'EMO', 'COG', 'COG'], // gazeSequence
+  [800, 900, 750, 850, 800],           // holdDurations (ms)
+  '13211',                              // polynomialEncoding
+  sessionNonce,
+  signTransaction
+)
 ```
+
+### HEDGEHOG MCP Verification
+
+```typescript
+// Verify gaze pattern with HEDGEHOG (powered by Grok 4.1)
+const response = await fetch('/api/hedgehog/gaze-verify', {
+  method: 'POST',
+  body: JSON.stringify({
+    template: jouleTemplate,
+    walletAddress: 'FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H'
+  })
+})
+
+// Response includes on-chain attestation data
+const {
+  onChainAttestation,
+  programId,  // 79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF
+  grokAnalysis
+} = await response.json()
+```
+
+---
 
 ## Account Structures
 
-### ProtocolConfig (Global PDA)
+### ProtocolConfig (PDA: `"protocol-config"`)
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `authority` | Pubkey | Protocol admin |
-| `jtx_mint` | Pubkey | $JTX token mint |
-| `cstb_mint` | Pubkey | $CSTB token mint |
-| `optx_mint` | Pubkey | $OPTX token mint |
-| `total_handshakes` | u64 | Total handshakes initiated |
-| `total_attestations` | u64 | Completed attestations |
-| `total_optx_minted` | u64 | Total $OPTX minted |
-| `gaze_threshold` | u64 | Min gaze duration (222 cs) |
-| `compute_difficulty_min` | u8 | Min compute difficulty |
-| `entropy_per_attestation` | u64 | Base entropy earned |
-| `optx_per_entropy` | u64 | OPTX minting rate |
-
-### Handshake (User PDA)
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `initiator` | Pubkey | User who initiated |
-| `handshake_id` | [u8; 32] | Unique identifier |
-| `initiated_at` | i64 | Start timestamp |
-| `expires_at` | i64 | Expiry (1 hour) |
-| `gaze_verified` | bool | Gaze attestation status |
-| `gaze_tensor_hash` | [u8; 32] | AGT hash |
-| `cog_vector` | [i16; 3] | Cognitive vector |
-| `emo_vector` | [i16; 3] | Emotional vector |
-| `env_vector` | [i16; 3] | Environmental vector |
-| `gaze_entropy` | u64 | Entropy from gaze |
-| `compute_verified` | bool | Compute proof status |
-| `compute_proof_hash` | [u8; 32] | CSTB proof hash |
-| `difficulty_level` | u8 | Proof difficulty |
-| `device_type` | u8 | Device used |
-| `compute_entropy` | u64 | Entropy from compute |
-
-### Attestation (Permanent Record)
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `owner` | Pubkey | Attestation owner |
-| `combined_hash` | [u8; 64] | gaze_hash \|\| compute_hash |
-| `combined_entropy` | u64 | Total entropy |
-| `optx_minted` | u64 | OPTX from this attestation |
-| `is_valid` | bool | Validity status |
-| `revoked_at` | Option<i64> | Revocation timestamp |
-
-### UserEntropy (User PDA)
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `owner` | Pubkey | Account owner |
-| `total_entropy` | u64 | Accumulated entropy |
-| `entropy_used` | u64 | Entropy spent on minting |
-| `attestation_count` | u64 | Number of attestations |
-| `optx_minting_allowance` | u64 | Current mint allowance |
-
-## Instructions
-
-| Instruction | Description |
-|-------------|-------------|
-| `initialize` | Set up protocol config with token mints |
-| `create_user_entropy` | Create entropy account for user |
-| `initiate_handshake` | Start new attestation handshake |
-| `submit_gaze_attestation` | Submit AGT hash + vectors |
-| `submit_compute_proof` | Submit CSTB proof + difficulty |
-| `finalize_attestation` | Create permanent attestation record |
-| `mint_optx` | Mint $OPTX from entropy allowance |
-| `verify_attestation` | Check attestation validity |
-| `revoke_attestation` | Invalidate an attestation |
-| `close_handshake` | Reclaim rent from expired handshake |
-
-## TypeScript SDK
-
-```typescript
-import { TrustClient, createTrustClient } from "./sdk";
-
-// Create client
-const client = createTrustClient(connection, wallet);
-
-// Create user entropy account
-await client.createUserEntropy(userKeypair);
-
-// Initiate handshake
-const handshake = await client.initiateHandshake(userKeypair);
-
-// Submit gaze attestation
-await client.submitGazeAttestation(userKeypair, handshake.publicKey, {
-  tensorHash: new Uint8Array(32).fill(0xAB),
-  durationCs: 250,
-  cogVector: [100, -50, 25],
-  emoVector: [-30, 80, 10],
-  envVector: [60, 40, -20],
-  gazeEntropy: 1500n,
-});
-
-// Submit compute proof
-await client.submitComputeProof(userKeypair, handshake.publicKey, {
-  proofHash: new Uint8Array(32).fill(0xCD),
-  difficulty: 2,
-  deviceType: 2,
-  nonce: 123456789n,
-  computeEntropy: 1000n,
-});
-
-// Finalize and get attestation
-const attestation = await client.finalizeAttestation(userKeypair, handshake.publicKey);
-
-// Check minting allowance
-const allowance = await client.getOptxMintingAllowance(userKeypair.publicKey);
-
-// Mint OPTX
-await client.mintOptx(userKeypair, allowance);
+```rust
+pub struct ProtocolConfig {
+    pub authority: Pubkey,
+    pub jtx_mint: Pubkey,
+    pub cstb_mint: Pubkey,
+    pub optx_mint: Pubkey,
+    pub total_handshakes: u64,
+    pub total_attestations: u64,
+    pub total_optx_minted: u64,
+    pub gaze_threshold: u64,      // default: 222 cs (2.22 seconds)
+    pub compute_difficulty_min: u8,
+    pub entropy_per_attestation: u64,
+    pub optx_per_entropy: u64,
+    pub paused: bool,             // [SECURITY FIX]
+    pub bump: u8,
+}
 ```
 
-## Adaptive Gaze Tensors (AGT)
+### Handshake (PDA: `"handshake" + user + handshake_id`)
 
-AGTs classify eye movements into three orthogonal vector spaces:
-
-| Vector | Dimension | What It Measures |
-|--------|-----------|------------------|
-| **COG** | Cognitive | Visual search, decision-making, focus |
-| **EMO** | Emotional | Saccade variations from emotional state |
-| **ENV** | Environmental | Lighting, device, context adaptations |
-
-**Key Properties**:
-- Stored as 3x3 matrix of i16 values on-chain
-- Hashed using SHA-256 for verification
-- Minimum gaze duration: 222 centiseconds (2.22 seconds - "jett capture")
-- Cryptographic implementation is proprietary (US Patent 19/243,050 pending)
-
-## $OPTX Tokenomics
-
-| Parameter | Value |
-|-----------|-------|
-| Total Supply | 22,000,000 $OPTX |
-| Token Standard | Token-2022 SPL |
-| Mint Authority | Protocol PDA |
-| Entropy → OPTX Rate | Variable (difficulty-based) |
-| Base Entropy/Attestation | 1,000 units |
-
-### Staking Tiers (Future)
-
-| Tier | Lock Period | Multiplier |
-|------|-------------|------------|
-| MOJO | 90 days | 1.0x |
-| DOJO | 180 days | 1.5x |
-| Founder | 365 days | 2.0x |
-
-## Error Codes
-
-| Error | Description |
-|-------|-------------|
-| `HandshakeExpired` | Handshake exceeded 1 hour |
-| `InsufficientGazeDuration` | Gaze < 222 centiseconds |
-| `InsufficientDifficulty` | Difficulty below minimum |
-| `IncompleteAttestation` | Both proofs not verified |
-| `UnauthorizedSigner` | Wrong signer |
-| `InsufficientAllowance` | Not enough OPTX allowance |
-| `InvalidEntropy` | Entropy must be > 0 |
-
-## Security Considerations
-
-- **Anti-replay**: Each handshake has a unique ID and 1-hour expiry
-- **Checked arithmetic**: All operations use overflow-checked math
-- **PDA derivation**: Deterministic addresses prevent spoofing
-- **Authorization**: All operations verify signer identity
-- **Entropy validation**: Prevents zero-entropy submissions
-
-## Project Structure
-
-```
-JTX-CSTB.TRUST.DEPIN/
-├── programs/
-│   └── jtx-cstb-trust/
-│       └── src/
-│           └── lib.rs          # Solana program
-├── sdk/
-│   ├── index.ts                # SDK exports
-│   └── trust-client.ts         # TypeScript client
-├── tests/
-│   └── jtx-cstb-trust.ts       # Test suite
-├── scripts/
-│   ├── deploy-optx.ts          # $OPTX token deployment
-│   └── initialize.ts           # Protocol initialization
-├── Anchor.toml                  # Anchor config
-├── Cargo.toml                   # Rust workspace
-├── package.json                 # Node dependencies
-└── README.md                    # This file
+```rust
+pub struct Handshake {
+    pub initiator: Pubkey,
+    pub handshake_id: [u8; 32],
+    pub expires_at: i64,
+    pub gaze_verified: bool,
+    pub gaze_tensor_hash: [u8; 32],
+    pub cog_vector: [i16; 3],
+    pub emo_vector: [i16; 3],
+    pub env_vector: [i16; 3],
+    pub gaze_entropy: u64,
+    pub compute_verified: bool,
+    pub compute_proof_hash: [u8; 32],
+    pub difficulty_level: u8,
+    pub compute_entropy: u64,
+    pub finalized: bool,          // [SECURITY FIX]
+    pub claimed: bool,            // [SECURITY FIX]
+    pub bump: u8,
+}
 ```
 
-## Contributing
+---
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `anchor test`
-5. Submit a pull request
+## Related Projects
 
-## License
+| Project | Description |
+|---------|-------------|
+| [v0-deploy-void-OPTX](https://github.com/jett22JOE/v0-deploy-void-OPTX) | Frontend with JETT gaze verification |
+| HEDGEHOG MCP | Off-chain verification server (Grok 4.1) |
+| CompuStable | Computational proof system |
 
-MIT License - see [LICENSE](LICENSE) for details.
+---
 
 ## Links
 
 - **JETT OPTICS**: https://jettoptics.ai
 - **CompuStable**: https://compustable.com
 - **$JTX on Solscan**: https://solscan.io/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj
+- **Program on Explorer**: https://explorer.solana.com/address/79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF?cluster=devnet
 
 ---
 
-*Built with by JETT OPTICS x CompuStable*
+## License
+
+MIT License - See [LICENSE](LICENSE) for details.
+
+---
+
+## Contact
+
+**Protocol:** JTX-CSTB Trust DePIN
+**Founder:** Joshua Martinez (jOSH-cto)
+**AI Assistant:** JOE (HEDGEHOG MCP + Grok 4.1 Fast Reasoning)
+
+---
+
+*ASTRO.KNOTS Verified and Approved*
