@@ -2,13 +2,16 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_2022::{self, MintTo, Token2022};
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF");
 
-/// JTX-CSTB Trust Protocol
+/// JTX-CSTB Trust Protocol v2.0.0
 ///
 /// Combines JETT OPTICS gaze-based Proof-of-Attention with CompuStable's
 /// computational proofs to create verified human-compute attestations on-chain.
 /// Enables $JTX holders to mint $OPTX tokens through verified identity attestations.
+///
+/// Security Audit: HEDGEHOG MCP - Grok 4.1 Fast Reasoning (2026-01-30)
+/// Fixes applied: Overflow protection, double-mint prevention, replay protection
 
 #[program]
 pub mod jtx_cstb_trust {
@@ -35,9 +38,10 @@ pub mod jtx_cstb_trust {
         config.compute_difficulty_min = compute_difficulty_min;
         config.entropy_per_attestation = entropy_per_attestation;
         config.optx_per_entropy = optx_per_entropy;
+        config.paused = false; // [SECURITY FIX] Emergency pause capability
         config.bump = ctx.bumps.protocol_config;
 
-        msg!("JTX-CSTB Trust Protocol initialized");
+        msg!("JTX-CSTB Trust Protocol v2.0.0 initialized");
         msg!("Authority: {}", config.authority);
         msg!("JTX Mint: {}", config.jtx_mint);
         msg!("CSTB Mint: {}", config.cstb_mint);
@@ -78,6 +82,14 @@ pub mod jtx_cstb_trust {
         Ok(())
     }
 
+    /// [SECURITY FIX] Emergency pause/unpause protocol
+    pub fn set_paused(ctx: Context<UpdateConfig>, paused: bool) -> Result<()> {
+        let config = &mut ctx.accounts.protocol_config;
+        config.paused = paused;
+        msg!("Protocol paused status: {}", paused);
+        Ok(())
+    }
+
     /// Create a UserEntropy account for a new user
     pub fn create_user_entropy(ctx: Context<CreateUserEntropy>) -> Result<()> {
         let user_entropy = &mut ctx.accounts.user_entropy;
@@ -104,6 +116,9 @@ pub mod jtx_cstb_trust {
         let config = &mut ctx.accounts.protocol_config;
         let clock = Clock::get()?;
 
+        // [SECURITY FIX] Check protocol not paused
+        require!(!config.paused, HandshakeError::ProtocolPaused);
+
         handshake.initiator = ctx.accounts.user.key();
         handshake.handshake_id = handshake_id;
         handshake.initiated_at = clock.unix_timestamp;
@@ -128,6 +143,10 @@ pub mod jtx_cstb_trust {
         handshake.compute_entropy = 0;
 
         handshake.attestation_complete = false;
+        // [SECURITY FIX] Add finalized flag to prevent double-finalization
+        handshake.finalized = false;
+        // [SECURITY FIX] Add claimed flag for replay protection
+        handshake.claimed = false;
         handshake.bump = ctx.bumps.handshake;
 
         // Increment global counter
@@ -141,7 +160,7 @@ pub mod jtx_cstb_trust {
         Ok(())
     }
 
-    /// Submit gaze attestation data (AGT hash + vectors)
+    /// Submit gaze attestation data (AGT<>markov chain proof hash + vectors)
     pub fn submit_gaze_attestation(
         ctx: Context<SubmitGazeAttestation>,
         tensor_hash: [u8; 32],
@@ -155,11 +174,17 @@ pub mod jtx_cstb_trust {
         let config = &ctx.accounts.protocol_config;
         let clock = Clock::get()?;
 
+        // [SECURITY FIX] Check protocol not paused
+        require!(!config.paused, HandshakeError::ProtocolPaused);
+
         // Verify authorization
         require!(
             handshake.initiator == ctx.accounts.user.key(),
             HandshakeError::UnauthorizedSigner
         );
+
+        // [SECURITY FIX] Check not already finalized
+        require!(!handshake.finalized, HandshakeError::AlreadyFinalized);
 
         // Check expiry
         require!(
@@ -176,6 +201,9 @@ pub mod jtx_cstb_trust {
         // Validate entropy value
         require!(gaze_entropy > 0, HandshakeError::InvalidEntropy);
 
+        // [SECURITY FIX] Cap entropy to prevent overflow attacks
+        require!(gaze_entropy <= 1_000_000_000, HandshakeError::EntropyTooHigh);
+
         // Store gaze attestation data
         handshake.gaze_tensor_hash = tensor_hash;
         handshake.cog_vector = cog_vector;
@@ -185,7 +213,7 @@ pub mod jtx_cstb_trust {
         handshake.gaze_verified = true;
         handshake.gaze_verified_at = clock.unix_timestamp;
 
-        msg!("Gaze attestation submitted");
+        msg!("AGT<>markov chain proof submitted");
         msg!("Tensor hash: {:?}", tensor_hash);
         msg!("COG vector: {:?}", cog_vector);
         msg!("EMO vector: {:?}", emo_vector);
@@ -215,11 +243,17 @@ pub mod jtx_cstb_trust {
         let config = &ctx.accounts.protocol_config;
         let clock = Clock::get()?;
 
+        // [SECURITY FIX] Check protocol not paused
+        require!(!config.paused, HandshakeError::ProtocolPaused);
+
         // Verify authorization
         require!(
             handshake.initiator == ctx.accounts.user.key(),
             HandshakeError::UnauthorizedSigner
         );
+
+        // [SECURITY FIX] Check not already finalized
+        require!(!handshake.finalized, HandshakeError::AlreadyFinalized);
 
         // Check expiry
         require!(
@@ -235,6 +269,9 @@ pub mod jtx_cstb_trust {
 
         // Validate entropy value
         require!(compute_entropy > 0, HandshakeError::InvalidEntropy);
+
+        // [SECURITY FIX] Cap entropy to prevent overflow attacks
+        require!(compute_entropy <= 1_000_000_000, HandshakeError::EntropyTooHigh);
 
         // Store compute proof data
         handshake.compute_proof_hash = proof_hash;
@@ -263,11 +300,26 @@ pub mod jtx_cstb_trust {
 
     /// Finalize attestation and create permanent record
     pub fn finalize_attestation(ctx: Context<FinalizeAttestation>) -> Result<()> {
-        let handshake = &ctx.accounts.handshake;
+        let handshake = &mut ctx.accounts.handshake;
         let attestation = &mut ctx.accounts.attestation;
         let user_entropy = &mut ctx.accounts.user_entropy;
         let config = &mut ctx.accounts.protocol_config;
         let clock = Clock::get()?;
+
+        // [SECURITY FIX] Check protocol not paused
+        require!(!config.paused, HandshakeError::ProtocolPaused);
+
+        // [SECURITY FIX] Check not already finalized (prevents double-finalization)
+        require!(!handshake.finalized, HandshakeError::AlreadyFinalized);
+
+        // [SECURITY FIX] Check not already claimed (prevents replay)
+        require!(!handshake.claimed, HandshakeError::AlreadyClaimed);
+
+        // [SECURITY FIX] Re-check expiry in finalize
+        require!(
+            clock.unix_timestamp < handshake.expires_at,
+            HandshakeError::HandshakeExpired
+        );
 
         // Verify both proofs are complete
         require!(
@@ -285,15 +337,21 @@ pub mod jtx_cstb_trust {
         combined_hash[..32].copy_from_slice(&handshake.gaze_tensor_hash);
         combined_hash[32..].copy_from_slice(&handshake.compute_proof_hash);
 
-        // Calculate OPTX minting allowance based on entropy and difficulty
-        let difficulty_multiplier = handshake.difficulty_level as u64;
-        let optx_allowance = combined_entropy
+        // [SECURITY FIX] Calculate OPTX allowance using u128 intermediate to prevent overflow
+        // Formula: (gaze_entropy + compute_entropy) * difficulty * optx_per_entropy / 1000
+        let difficulty_multiplier = handshake.difficulty_level as u128;
+        let optx_allowance_u128 = (combined_entropy as u128)
             .checked_mul(difficulty_multiplier)
             .ok_or(HandshakeError::ArithmeticOverflow)?
-            .checked_mul(config.optx_per_entropy)
+            .checked_mul(config.optx_per_entropy as u128)
             .ok_or(HandshakeError::ArithmeticOverflow)?
-            .checked_div(1000) // Normalize
+            .checked_div(1000)
             .ok_or(HandshakeError::ArithmeticOverflow)?;
+
+        // [SECURITY FIX] Ensure result fits in u64
+        let optx_allowance: u64 = optx_allowance_u128
+            .try_into()
+            .map_err(|_| HandshakeError::ArithmeticOverflow)?;
 
         // Populate attestation account
         attestation.owner = ctx.accounts.user.key();
@@ -327,6 +385,10 @@ pub mod jtx_cstb_trust {
             .checked_add(1)
             .ok_or(HandshakeError::ArithmeticOverflow)?;
 
+        // [SECURITY FIX] Mark handshake as finalized and claimed
+        handshake.finalized = true;
+        handshake.claimed = true;
+
         msg!("Attestation finalized");
         msg!("Owner: {}", attestation.owner);
         msg!("Combined entropy: {}", combined_entropy);
@@ -340,6 +402,9 @@ pub mod jtx_cstb_trust {
 
     /// Mint OPTX tokens based on accumulated entropy allowance
     pub fn mint_optx(ctx: Context<MintOptx>, amount: u64) -> Result<()> {
+        // [SECURITY FIX] Check protocol not paused
+        require!(!ctx.accounts.protocol_config.paused, HandshakeError::ProtocolPaused);
+
         // Verify authorization
         require!(
             ctx.accounts.user_entropy.owner == ctx.accounts.user.key(),
@@ -352,7 +417,13 @@ pub mod jtx_cstb_trust {
             HandshakeError::InsufficientAllowance
         );
 
-        // Get bump for signing (read before mutable borrow)
+        // [SECURITY FIX] Deduct allowance BEFORE CPI to prevent double-mint race
+        let user_entropy = &mut ctx.accounts.user_entropy;
+        user_entropy.optx_minting_allowance = user_entropy.optx_minting_allowance
+            .checked_sub(amount)
+            .ok_or(HandshakeError::ArithmeticOverflow)?;
+
+        // Get bump for signing
         let bump = ctx.accounts.protocol_config.bump;
 
         // Mint OPTX tokens via CPI
@@ -372,11 +443,7 @@ pub mod jtx_cstb_trust {
 
         token_2022::mint_to(cpi_ctx, amount)?;
 
-        // Update user entropy state
-        let user_entropy = &mut ctx.accounts.user_entropy;
-        user_entropy.optx_minting_allowance = user_entropy.optx_minting_allowance
-            .checked_sub(amount)
-            .ok_or(HandshakeError::ArithmeticOverflow)?;
+        // Update entropy used tracking
         user_entropy.entropy_used = user_entropy.entropy_used
             .checked_add(amount)
             .ok_or(HandshakeError::ArithmeticOverflow)?;
@@ -471,6 +538,8 @@ pub struct ProtocolConfig {
     pub entropy_per_attestation: u64,
     /// OPTX tokens per entropy unit (multiplied by 1000)
     pub optx_per_entropy: u64,
+    /// [SECURITY FIX] Emergency pause flag
+    pub paused: bool,
     /// PDA bump seed
     pub bump: u8,
 }
@@ -488,6 +557,7 @@ impl ProtocolConfig {
         1 +     // compute_difficulty_min
         8 +     // entropy_per_attestation
         8 +     // optx_per_entropy
+        1 +     // paused [SECURITY FIX]
         1;      // bump
 }
 
@@ -503,7 +573,7 @@ pub struct Handshake {
     /// Timestamp when handshake expires
     pub expires_at: i64,
 
-    // === Gaze Attestation ===
+    // === Gaze Attestation (AGT<>markov chain proofs) ===
     /// Whether gaze has been verified
     pub gaze_verified: bool,
     /// Timestamp when gaze was verified
@@ -537,6 +607,10 @@ pub struct Handshake {
 
     /// Whether the attestation is complete
     pub attestation_complete: bool,
+    /// [SECURITY FIX] Whether this handshake has been finalized (prevents double-finalization)
+    pub finalized: bool,
+    /// [SECURITY FIX] Whether this handshake has been claimed (prevents replay attacks)
+    pub claimed: bool,
     /// PDA bump seed
     pub bump: u8,
 }
@@ -565,6 +639,8 @@ impl Handshake {
         8 +     // compute_entropy
         // Status
         1 +     // attestation_complete
+        1 +     // finalized [SECURITY FIX]
+        1 +     // claimed [SECURITY FIX]
         1;      // bump
 }
 
@@ -577,7 +653,7 @@ pub struct Attestation {
     pub handshake_id: [u8; 32],
     /// Timestamp when attestation was created
     pub created_at: i64,
-    /// AGT tensor hash
+    /// AGT<>markov chain proof tensor hash
     pub gaze_tensor_hash: [u8; 32],
     /// Compute proof hash
     pub compute_proof_hash: [u8; 32],
@@ -778,6 +854,7 @@ pub struct FinalizeAttestation<'info> {
     pub user: Signer<'info>,
 
     #[account(
+        mut, // [SECURITY FIX] Changed to mut to update finalized/claimed flags
         seeds = [b"handshake", handshake.initiator.as_ref(), handshake.handshake_id.as_ref()],
         bump = handshake.bump,
         constraint = handshake.initiator == user.key() @ HandshakeError::UnauthorizedSigner
@@ -934,4 +1011,14 @@ pub enum HandshakeError {
 
     #[msg("Cannot close active handshake (must be expired or complete)")]
     CannotCloseActiveHandshake,
+
+    // [SECURITY FIX] New error codes
+    #[msg("Protocol is currently paused")]
+    ProtocolPaused,
+
+    #[msg("Handshake has already been claimed")]
+    AlreadyClaimed,
+
+    #[msg("Entropy value exceeds maximum allowed (1 billion)")]
+    EntropyTooHigh,
 }
