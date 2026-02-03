@@ -14,7 +14,24 @@
 | **Program ID** | `79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF` |
 | **Network** | Solana Devnet |
 | **Upgrade Authority** | `FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H` |
+| **JTX Vault (SOL)** | `3XZViWWRXEpQPkF3R1CBHuxqvuYgDW5fWPvbVHkCgGqq` |
 | **Explorer** | [View on Solana Explorer](https://explorer.solana.com/address/79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF?cluster=devnet) |
+
+---
+
+## JOEclaw Earnings
+
+JOEclaw (the autonomous agent) earns SOL through skill deployments and services. All earnings are deposited to the **JTX Vault**:
+
+```
+JTX Vault: 3XZViWWRXEpQPkF3R1CBHuxqvuYgDW5fWPvbVHkCgGqq
+```
+
+| Service | Rate | Recipient |
+|---------|------|-----------|
+| Vercel Deploy Skill | 0.08 SOL/deploy | JTX Vault |
+| $JTX Holder Discount | FREE (hold 1 $JTX) | - |
+| HEDGEHOG API calls | Pay-per-use | JTX Vault |
 
 ---
 
@@ -90,19 +107,19 @@ User Gaze Capture (COG/EMO/ENV)
 
 ---
 
-## JETT DePIN 5-Digit Polynomial
+## JETT DePIN 4-Digit Tensor PIN
 
-Users create a unique 5-position polynomial pattern by gazing at AGT regions:
+Users create a unique 4-position tensor PIN by selecting AGT regions:
 
-| Tensor | Code | Description |
-|--------|------|-------------|
-| **COG** | 1 | Cognitive - Visual search, decision-making, focus patterns |
-| **EMO** | 2 | Emotional - Saccade variations from emotional state |
-| **ENV** | 3 | Environmental - Lighting, device context, ambient factors |
+| Tensor | Key | Emoji | Description |
+|--------|-----|-------|-------------|
+| **COG** | 1 | 🧠 | Cognitive - Visual search, decision-making, focus patterns |
+| **EMO** | 2 | ❤️ | Emotional - Saccade variations from emotional state |
+| **ENV** | 3 | 🌍 | Environmental - Lighting, device context, ambient factors |
 
-**Example Polynomial:** `13211` = COG → ENV → EMO → COG → COG
+**Example PIN:** `1321` = 🧠 → 🌍 → ❤️ → 🧠
 
-This polynomial becomes part of the AGT<>markov chain proof for on-chain attestation.
+This tensor PIN becomes part of the AGT<>markov chain proof for on-chain attestation and DePIN wallet binding.
 
 ---
 
@@ -208,9 +225,9 @@ import {
 // Submit gaze attestation after HEDGEHOG verification
 const result = await submitGazeAttestation(
   walletAddress,
-  ['COG', 'ENV', 'EMO', 'COG', 'COG'], // gazeSequence
-  [800, 900, 750, 850, 800],           // holdDurations (ms)
-  '13211',                              // polynomialEncoding
+  ['COG', 'ENV', 'EMO', 'COG'],   // 4-position gazeSequence
+  [800, 900, 750, 850],           // holdDurations (ms)
+  '1321',                          // tensorPIN encoding
   sessionNonce,
   signTransaction
 )
