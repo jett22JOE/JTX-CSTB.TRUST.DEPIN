@@ -322,7 +322,7 @@ The agent wallet has **no private key on the edge node** and **no sign() method*
 ### Wallet RPC (WebSocket)
 
 ```
-Endpoint: wss://jettoptx-joe.taile11759.ts.net/ws/joe
+Endpoint: wss://joe-ws.jettoptics.ai/ws/joe
 ```
 
 | Message Type | Response |
@@ -336,7 +336,7 @@ Endpoint: wss://jettoptx-joe.taile11759.ts.net/ws/joe
 
 ```typescript
 // Query JOE's wallet from frontend
-const ws = new WebSocket("wss://jettoptx-joe.taile11759.ts.net/ws/joe");
+const ws = new WebSocket("wss://joe-ws.jettoptics.ai/ws/joe");
 ws.onopen = () => ws.send(JSON.stringify({ type: "wallet_status" }));
 ws.onmessage = (e) => {
   const { data } = JSON.parse(e.data);
