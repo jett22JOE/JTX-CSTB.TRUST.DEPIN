@@ -302,22 +302,221 @@ pub struct Handshake {
 
 ---
 
+## ERC-8004 Agent Wallet
+
+JOE operates an **ERC-8004** compliant Agent Wallet — a non-transferable, soulbound computational identity on Solana.
+
+| Field | Value |
+|-------|-------|
+| **Standard** | ERC-8004 (Agent Wallet) |
+| **Agent** | JOE (Jett Optical Engine) |
+| **Public Key** | `EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk` |
+| **Network** | Solana Devnet |
+| **Soulbound** | Yes (non-transferable) |
+| **Signing** | Deferred to seeker phone via Tailscale mesh |
+
+### Read-Only by Design
+
+The agent wallet has **no private key on the edge node** and **no sign() method**. All signing is deferred to the seeker phone over the Tailscale WireGuard mesh. This is enforced at the API level.
+
+### Wallet RPC (WebSocket)
+
+```
+Endpoint: wss://jettoptx-joe.taile11759.ts.net/ws/joe
+```
+
+| Message Type | Response |
+|-------------|----------|
+| `wallet_status` | SOL, OPTX, JTX, CSTB balances + attestation progress |
+| `wallet_metadata` | ERC-8004 identity, capabilities, AGT baseline, signing config |
+| `x402_policy` | Service pricing, accepted tokens, free tier |
+| `x402_verify` | On-chain payment receipt verification |
+| `bridge_status` | LayerZero bridge config + OPTX supply |
+| `chat` | Conversational AI (Grok 4.1 pipeline) |
+
+```typescript
+// Query JOE's wallet from frontend
+const ws = new WebSocket("wss://jettoptx-joe.taile11759.ts.net/ws/joe");
+ws.onopen = () => ws.send(JSON.stringify({ type: "wallet_status" }));
+ws.onmessage = (e) => {
+  const { data } = JSON.parse(e.data);
+  console.log(data.balances); // { sol: 0.457988, optx: 0, jtx: 0, cstb: 0 }
+};
+```
+
+### Agent Metadata
+
+```json
+{
+  "standard": "ERC-8004",
+  "agent_id": "JOE",
+  "identity": {
+    "name": "JOE (Jett Optical Engine)",
+    "type": "computational_agent",
+    "soulbound": true,
+    "creator": "JETT Protocol",
+    "deployment": "jetson-orin-nano"
+  },
+  "capabilities": [
+    "gaze_analysis", "spatial_reasoning", "code_execution",
+    "file_editing", "browser_automation", "agt_classification", "cstb_attestation"
+  ],
+  "agt_baseline": { "cog": 0.33, "emo": 0.33, "env": 0.34 },
+  "signing": {
+    "method": "deferred",
+    "signer": "seeker_phone",
+    "transport": "tailscale_mesh"
+  }
+}
+```
+
+---
+
+## x402 Payment Protocol
+
+JOE implements the **x402** HTTP 402-based payment protocol for agent-to-agent and user-to-agent commerce.
+
+### Service Pricing
+
+| Service | Price | Unit | Per |
+|---------|-------|------|-----|
+| Gaze Analysis | 0.5 | OPTX | session |
+| Code Execution | 1.0 | OPTX | execution |
+| Chat (Grok 4.1) | 0.1 | OPTX | message |
+| Spatial Encryption | 2.0 | OPTX | key |
+| CSTB Attestation | 0.25 | OPTX | attestation |
+
+### Free Tier
+
+- 10 chat messages (no payment required)
+- 1 gaze analysis session
+
+### Payment Flow
+
+```
+1. Client requests service → JOE returns HTTP 402 + payment policy
+2. Client sends payment tx to JOE's public key (EFvgELE1...)
+3. Client includes tx signature in X-Payment-Signature header
+4. JOE verifies tx on-chain (read-only getTransaction) → grants access
+```
+
+### Accepted Tokens
+
+| Token | Mint |
+|-------|------|
+| $OPTX | `4r9WoPsRjJzrYEuj6VdwowVrFZaXpu16Qt6xogcmdUXC` |
+| $JTX | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` |
+| SOL | Native |
+
+---
+
+## LayerZero Cross-Chain Bridge
+
+OPTX uses **LayerZero v2 OFT** (Omnichain Fungible Token) standard for cross-chain bridging.
+
+| Field | Value |
+|-------|-------|
+| **Standard** | LayerZero OFT v2 |
+| **Home Chain** | Solana (devnet, endpoint 40168) |
+| **Status** | devnet-testing |
+| **Min Bridge** | 1 OPTX |
+| **Max Bridge** | 10,000 OPTX |
+| **Fee** | 0.1% |
+| **Est. Time** | ~120 seconds |
+
+### Supported Chains
+
+| Chain | Network | Endpoint ID | Status |
+|-------|---------|-------------|--------|
+| Ethereum | Sepolia | 40161 | Planned |
+| Base | Sepolia | 40245 | Planned |
+| Arbitrum | Sepolia | 40231 | Planned |
+| Polygon | Amoy | 40267 | Planned |
+
+### Security
+
+- LayerZero Default DVN + Executor + Oracle
+- JETT Protocol gaze-verified transfers only
+- All bridge operations require CSTB attestation
+
+---
+
+## Network Addresses
+
+| Network | Address |
+|---------|---------|
+| **Secret Network** | `secret1z35h7wk4llg9lgwnd8483xgag0zv7mwweq9wnn` |
+| **AARON Network** | `aaron17vw2s0kknna7tshu0s0j5umppvxlgh7acj44dt` |
+
+---
+
+## OPTX Developer Suite
+
+Full developer documentation is available at **[jettoptics.ai/docs](https://jettoptics.ai/docs)**.
+
+| Tab | Content |
+|-----|---------|
+| Overview | Architecture, quick start, on-chain addresses |
+| API Reference | WebSocket RPC, REST endpoints, HEDGEHOG MCP tools |
+| Gaze Verification | AGT tensor guide, JETT Protocol, calibration flow |
+| ERC-8004 Wallet | Agent Wallet integration, soulbound metadata schema |
+| LayerZero Bridge | OFT bridging, supported chains, bridge flow |
+| CSTB / DePIN | Anchor program, attestation instructions, reward distribution |
+
+---
+
+## Edge Infrastructure
+
+JOE runs on a **Jetson Orin Nano** edge node connected via Tailscale mesh:
+
+```
+[Devices] ──(Tailscale WireGuard)──► [Jetson Orin Nano]
+                                            │
+                                    ┌───────┴───────┐
+                                    ▼               ▼
+                              [JOE Agent]    [SpacetimeDB]
+                                    │               │
+                                    ▼               ▼
+                           [WebSocket :8765]  [Reducers :3000]
+                                    │
+                                    ▼
+                           [Tailscale Funnel]
+                                    │
+                                    ▼
+                           [jettoptics.ai/dojo]
+```
+
+| Component | Details |
+|-----------|---------|
+| **Edge** | Jetson Orin Nano (6-core ARM, 7.4GB RAM) |
+| **AI** | Grok 4.1 Fast Reasoning via HEDGEHOG MCP |
+| **Database** | SpacetimeDB v1.12.0 (native binary) |
+| **Network** | Tailscale mesh + Funnel (WSS exposure) |
+| **Frontend** | Vercel (Next.js 14 + TypeScript) |
+| **Auth** | Clerk (accounts) + Gaze biometrics (JETT Protocol) |
+
+---
+
 ## Related Projects
 
 | Project | Description |
 |---------|-------------|
-| [v0-deploy-void-OPTX](https://github.com/jett22JOE/v0-deploy-void-OPTX) | Frontend with JETT gaze verification |
-| HEDGEHOG MCP | Off-chain verification server (Grok 4.1) |
+| [v0-deploy-void-OPTX](https://github.com/jett22JOE/v0-deploy-void-OPTX) | Frontend + OPTX Developer Suite + Dojo |
+| HEDGEHOG MCP | Off-chain verification + Grok 4.1 gateway |
 | CompuStable | Computational proof system |
+| JOE | Autonomous agent (Matrix bot + WebSocket RPC) |
 
 ---
 
 ## Links
 
 - **JETT OPTICS**: https://jettoptics.ai
+- **OPTX Developer Suite**: https://jettoptics.ai/docs
+- **Dojo**: https://jettoptics.ai/dojo
 - **CompuStable**: https://compustable.com
 - **$JTX on Solscan**: https://solscan.io/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj
 - **Program on Explorer**: https://explorer.solana.com/address/79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF?cluster=devnet
+- **JOE Agent Wallet**: https://explorer.solana.com/address/EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk?cluster=devnet
 
 ---
 
@@ -331,7 +530,8 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 **Protocol:** JTX-CSTB Trust DePIN
 **Founder:** Joshua Martinez (jOSH-cto)
-**AI Assistant:** JOE (HEDGEHOG MCP + Grok 4.1 Fast Reasoning)
+**AI Agent:** JOE (ERC-8004 Soulbound | HEDGEHOG MCP + Grok 4.1 Fast Reasoning)
+**Edge Node:** Jetson Orin Nano via Tailscale Mesh
 
 ---
 
