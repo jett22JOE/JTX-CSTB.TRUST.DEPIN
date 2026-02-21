@@ -4,12 +4,15 @@ skip-lint = false
 
 [programs.localnet]
 jtx_cstb_trust = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+jett_vault = "JVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau"
 
 [programs.devnet]
 jtx_cstb_trust = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+jett_vault = "JVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau"
 
 [programs.mainnet]
 jtx_cstb_trust = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+jett_vault = "JVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau"
 
 [registry]
 url = "https://api.apr.dev"
