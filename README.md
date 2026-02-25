@@ -26,9 +26,30 @@ ________________
 
 ---
 
+## System Architecture
+
+```mermaid
+graph TD
+    User[User / MOJO Mobile] -->|Gaze Pattern| JETT[JETT Auth]
+    JETT -->|Biometric Signature| OPTX_BRIDGE["OPT𝕏 Bridge"]
+    OPTX_BRIDGE -->|Opaque Proof| AARON[AARON Router]
+    AARON <-->|x402 Payments & Attestations| OPTXChain["OPTX Blockchain<br/>Solana Mainnet"]
+    AARON -->|Domain Management| KNOT[KNOT Terminal]
+```
+
 ## Architecture Overview
 
-The JTX-CSTB Trust Protocol uses AGT (Adaptive Gaze Tensor) attestations with biometric proof hashing. The protocol combines gaze-based Proof-of-Attention with computational proofs to create verified human-compute attestations on-chain. `$JTX` holders can mint `$OPTX` through verified identity attestations.
+The JTX-CSTB Trust Protocol uses AGT (Agentive Gaze Tensor) attestations with biometric proof hashing. The protocol combines gaze-based Proof-of-Attention with computational proofs to create verified human-compute attestations on-chain. `$JTX` holders can mint `$OPTX` through verified identity attestations.
+
+### Naming Hierarchy
+
+| Name | Full | Role |
+|------|------|------|
+| **JETT Auth** | Joule Encryption Temporal Template Auth | Biometric gaze signature + SSO |
+| **OPT𝕏** | Optical Program Technologic 𝕏tension | Secure bridge: JETT Auth → on-chain proofs |
+| **AARON** | Asynchronous Audit RAG Optical Node | On-chain protocol + private edge router |
+| **OPTX** | Public Blockchain & Token Network | Solana mainnet tokens and protocol |
+| **AGT** | Agentive Gaze Tensor | COG/EMO/ENV tensors — performs Web4 actions for JETT Auth |
 
 ### Key Concepts
 
