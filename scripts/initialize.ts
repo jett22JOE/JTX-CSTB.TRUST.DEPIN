@@ -71,7 +71,7 @@ function parseArgs(): {
   const args = process.argv.slice(2);
   let cluster = "devnet";
   let optxMint: string | null = null;
-  let programId = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS";
+  let programId = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF";
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--cluster" && args[i + 1]) {

@@ -147,7 +147,7 @@ describe("jett-vault (Astro Knots v2.1 — Scrubbed)", () => {
 
   // Trust program ID (for CPI testing)
   const trustProgramId = new PublicKey(
-    "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+    "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
   );
 
   // PDAs

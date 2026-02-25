@@ -171,7 +171,7 @@ export const DEFAULT_OPTX_PER_ENTROPY = 1000;
 
 /** Program ID placeholder - update after deployment */
 export const PROGRAM_ID = new PublicKey(
-  "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+  "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
 );
 
 // ============================================================================

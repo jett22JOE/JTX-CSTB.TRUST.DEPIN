@@ -3,15 +3,15 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-jtx_cstb_trust = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+jtx_cstb_trust = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
 jett_vault = "JVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau"
 
 [programs.devnet]
-jtx_cstb_trust = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+jtx_cstb_trust = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
 jett_vault = "JVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau"
 
 [programs.mainnet]
-jtx_cstb_trust = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+jtx_cstb_trust = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
 jett_vault = "JVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau"
 
 [registry]
