@@ -257,6 +257,91 @@ pub mod jett_vault {
     }
 
     // ========================================================================
+    // INSTRUCTION #2b: donate_jtx
+    // ========================================================================
+
+    /// Donate JTX (Token-2022 SPL) to the vault.
+    /// Transfers JTX from donor's token account to the vault's JTX token account.
+    /// Creates/updates Donor PDA and JtxVaultStats PDA to track JTX raised.
+    ///
+    /// The JTX is held in a vault-owned associated token account, not the
+    /// founder wallet. This is real on-chain escrow.
+    ///
+    /// JTX Mint: 9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj (Token-2022, 9 decimals)
+    pub fn donate_jtx(
+        ctx: Context<DonateJtx>,
+        amount: u64,
+        referrer: Option<Pubkey>,
+    ) -> Result<()> {
+        let clock = Clock::get()?;
+
+        // Validate before mutable borrows
+        require!(!ctx.accounts.vault_config.paused, VaultError::VaultPaused);
+        require!(amount > 0, VaultError::ZeroAmount);
+        require!(!ctx.accounts.vault_config.is_launched, VaultError::VaultAlreadyLaunched);
+
+        // Transfer JTX from donor to vault token account via Token-2022 CPI
+        let cpi_accounts = anchor_spl::token_2022::TransferChecked {
+            from: ctx.accounts.donor_jtx_account.to_account_info(),
+            mint: ctx.accounts.jtx_mint.to_account_info(),
+            to: ctx.accounts.vault_jtx_account.to_account_info(),
+            authority: ctx.accounts.donor_signer.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+        );
+        anchor_spl::token_2022::transfer_checked(cpi_ctx, amount, 9)?; // 9 decimals for JTX
+
+        // Update donor record
+        let donor = &mut ctx.accounts.donor;
+        donor.wallet = ctx.accounts.donor_signer.key();
+        donor.amount_lamports = donor.amount_lamports; // keep SOL amount unchanged
+        donor.donated_at = clock.unix_timestamp;
+        donor.referrer = referrer;
+        donor.optx_multiplier_bps = MULTIPLIER_DEFAULT_BPS;
+        donor.bump = ctx.bumps.donor;
+
+        // Update JTX vault stats (separate PDA to avoid resizing VaultConfig)
+        let stats = &mut ctx.accounts.jtx_vault_stats;
+        stats.total_jtx_raised = stats
+            .total_jtx_raised
+            .checked_add(amount)
+            .ok_or(VaultError::ArithmeticOverflow)?;
+        stats.jtx_donor_count = stats
+            .jtx_donor_count
+            .checked_add(1)
+            .ok_or(VaultError::ArithmeticOverflow)?;
+        stats.last_donation_at = clock.unix_timestamp;
+        stats.bump = ctx.bumps.jtx_vault_stats;
+
+        // Update vault donor count
+        let vault = &mut ctx.accounts.vault_config;
+        vault.donor_count = vault
+            .donor_count
+            .checked_add(1)
+            .ok_or(VaultError::ArithmeticOverflow)?;
+
+        emit!(VaultEvent {
+            event_type: "donate_jtx".to_string(),
+            user: ctx.accounts.donor_signer.key(),
+            amount,
+            timestamp: clock.unix_timestamp,
+            referrer,
+            phase: vault.phase,
+        });
+
+        msg!(
+            "JTX Donation: {} tokens from {}. Total JTX raised: {}",
+            amount,
+            ctx.accounts.donor_signer.key(),
+            stats.total_jtx_raised
+        );
+
+        Ok(())
+    }
+
+    // ========================================================================
     // INSTRUCTION #3: donate_usdc_agent
     // ========================================================================
 
@@ -1469,6 +1554,29 @@ impl DonorReceipt {
         1;      // bump
 }
 
+/// JtxVaultStats — Separate PDA tracking JTX donations.
+/// Seeds: ["jtx_stats", vault_config_pubkey]
+/// Kept separate from VaultConfig to avoid resizing the already-deployed account.
+#[account]
+pub struct JtxVaultStats {
+    /// Total JTX tokens raised (9 decimals)
+    pub total_jtx_raised: u64,
+    /// Number of JTX donors
+    pub jtx_donor_count: u32,
+    /// Last JTX donation timestamp
+    pub last_donation_at: i64,
+    /// PDA bump
+    pub bump: u8,
+}
+
+impl JtxVaultStats {
+    pub const LEN: usize = 8 + // discriminator
+        8 +     // total_jtx_raised
+        4 +     // jtx_donor_count
+        8 +     // last_donation_at
+        1;      // bump
+}
+
 /// AgentAcquisition — Links agent USDC payment to acquired human.
 /// Seeds: ["agent_acq", agent_pubkey, user_pubkey]
 #[account]
@@ -1653,6 +1761,53 @@ pub struct DonateSol<'info> {
         bump = vault_config.bump
     )]
     pub vault_config: Account<'info, VaultConfig>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct DonateJtx<'info> {
+    #[account(mut)]
+    pub donor_signer: Signer<'info>,
+
+    #[account(
+        init_if_needed,
+        payer = donor_signer,
+        space = Donor::LEN,
+        seeds = [b"donor", donor_signer.key().as_ref()],
+        bump
+    )]
+    pub donor: Account<'info, Donor>,
+
+    #[account(
+        init_if_needed,
+        payer = donor_signer,
+        space = JtxVaultStats::LEN,
+        seeds = [b"jtx_stats", vault_config.key().as_ref()],
+        bump
+    )]
+    pub jtx_vault_stats: Account<'info, JtxVaultStats>,
+
+    #[account(
+        mut,
+        seeds = [b"vault_config"],
+        bump = vault_config.bump
+    )]
+    pub vault_config: Account<'info, VaultConfig>,
+
+    /// Donor's JTX token account (Token-2022)
+    #[account(mut)]
+    pub donor_jtx_account: InterfaceAccount<'info, anchor_spl::token_interface::TokenAccount>,
+
+    /// Vault's JTX token account (Token-2022) — receives the donated JTX
+    #[account(mut)]
+    pub vault_jtx_account: InterfaceAccount<'info, anchor_spl::token_interface::TokenAccount>,
+
+    /// JTX mint (Token-2022)
+    pub jtx_mint: InterfaceAccount<'info, anchor_spl::token_interface::Mint>,
+
+    /// Token-2022 program
+    pub token_program: Interface<'info, anchor_spl::token_interface::TokenInterface>,
 
     pub system_program: Program<'info, System>,
 }
