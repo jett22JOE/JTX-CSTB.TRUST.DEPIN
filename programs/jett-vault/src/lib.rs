@@ -1777,7 +1777,7 @@ pub struct DonateJtx<'info> {
         seeds = [b"donor", donor_signer.key().as_ref()],
         bump
     )]
-    pub donor: Account<'info, Donor>,
+    pub donor: Box<Account<'info, Donor>>,
 
     #[account(
         init_if_needed,
@@ -1786,25 +1786,25 @@ pub struct DonateJtx<'info> {
         seeds = [b"jtx_stats", vault_config.key().as_ref()],
         bump
     )]
-    pub jtx_vault_stats: Account<'info, JtxVaultStats>,
+    pub jtx_vault_stats: Box<Account<'info, JtxVaultStats>>,
 
     #[account(
         mut,
         seeds = [b"vault_config"],
         bump = vault_config.bump
     )]
-    pub vault_config: Account<'info, VaultConfig>,
+    pub vault_config: Box<Account<'info, VaultConfig>>,
 
     /// Donor's JTX token account (Token-2022)
     #[account(mut)]
-    pub donor_jtx_account: InterfaceAccount<'info, anchor_spl::token_interface::TokenAccount>,
+    pub donor_jtx_account: Box<InterfaceAccount<'info, anchor_spl::token_interface::TokenAccount>>,
 
     /// Vault's JTX token account (Token-2022) — receives the donated JTX
     #[account(mut)]
-    pub vault_jtx_account: InterfaceAccount<'info, anchor_spl::token_interface::TokenAccount>,
+    pub vault_jtx_account: Box<InterfaceAccount<'info, anchor_spl::token_interface::TokenAccount>>,
 
     /// JTX mint (Token-2022)
-    pub jtx_mint: InterfaceAccount<'info, anchor_spl::token_interface::Mint>,
+    pub jtx_mint: Box<InterfaceAccount<'info, anchor_spl::token_interface::Mint>>,
 
     /// Token-2022 program
     pub token_program: Interface<'info, anchor_spl::token_interface::TokenInterface>,
