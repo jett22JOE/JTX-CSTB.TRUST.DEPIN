@@ -179,15 +179,14 @@ pub mod jett_vault {
         amount: u64,
         referrer: Option<Pubkey>,
     ) -> Result<()> {
-        let vault = &mut ctx.accounts.vault_config;
-        let donor = &mut ctx.accounts.donor;
         let clock = Clock::get()?;
 
-        require!(!vault.paused, VaultError::VaultPaused);
+        // Validate before borrowing mutably
+        require!(!ctx.accounts.vault_config.paused, VaultError::VaultPaused);
         require!(amount > 0, VaultError::ZeroAmount);
-        require!(!vault.is_launched, VaultError::VaultAlreadyLaunched);
+        require!(!ctx.accounts.vault_config.is_launched, VaultError::VaultAlreadyLaunched);
 
-        // Transfer SOL from donor to vault PDA
+        // Transfer SOL from donor to vault PDA (before mutable borrows)
         let cpi_ctx = CpiContext::new(
             ctx.accounts.system_program.to_account_info(),
             system_program::Transfer {
@@ -196,6 +195,10 @@ pub mod jett_vault {
             },
         );
         system_program::transfer(cpi_ctx, amount)?;
+
+        // Now safe to borrow mutably
+        let vault = &mut ctx.accounts.vault_config;
+        let donor = &mut ctx.accounts.donor;
 
         // Update donor record
         donor.wallet = ctx.accounts.donor_signer.key();
@@ -619,15 +622,13 @@ pub mod jett_vault {
         emo_score: u16,
         audit_notes_hash: [u8; 32],
     ) -> Result<()> {
-        let agt = &mut ctx.accounts.agt_attestation;
-        let audit = &mut ctx.accounts.aaron_audit_account;
-        let vault = &mut ctx.accounts.vault_config;
         let clock = Clock::get()?;
 
-        require!(!vault.paused, VaultError::VaultPaused);
-        require!(agt.is_valid, VaultError::AttestationRevoked);
+        // Validate before mutable borrows
+        require!(!ctx.accounts.vault_config.paused, VaultError::VaultPaused);
+        require!(ctx.accounts.agt_attestation.is_valid, VaultError::AttestationRevoked);
         require!(
-            agt.aaron_audit_hash.is_none(),
+            ctx.accounts.agt_attestation.aaron_audit_hash.is_none(),
             VaultError::AuditAlreadyExists
         );
 
@@ -637,9 +638,18 @@ pub mod jett_vault {
         require!(env_score <= 10000, VaultError::InvalidRiskScore);
         require!(emo_score <= 10000, VaultError::InvalidRiskScore);
 
+        // Capture keys before mutable borrows
+        let agt_key = ctx.accounts.agt_attestation.key();
+        let auditor_key = ctx.accounts.aaron_operator.key();
+
+        // Now safe to borrow mutably
+        let agt = &mut ctx.accounts.agt_attestation;
+        let audit = &mut ctx.accounts.aaron_audit_account;
+        let vault = &mut ctx.accounts.vault_config;
+
         // Populate AARON audit PDA
-        audit.agt_attestation = ctx.accounts.agt_attestation.key();
-        audit.auditor = ctx.accounts.aaron_operator.key();
+        audit.agt_attestation = agt_key;
+        audit.auditor = auditor_key;
         audit.audit_hash = audit_hash;
         audit.risk_score = risk_score;
         audit.cog_score = cog_score;
@@ -853,25 +863,26 @@ pub mod jett_vault {
     /// Permissionless refund claim. Only available if vault is marked refundable
     /// (deadline passed + goal not met). Proportional refund based on donation.
     pub fn claim_refund(ctx: Context<ClaimRefund>) -> Result<()> {
-        let vault = &mut ctx.accounts.vault_config;
-        let donor = &mut ctx.accounts.donor;
         let clock = Clock::get()?;
 
-        require!(vault.is_refundable, VaultError::NotRefundable);
-        require!(!donor.refund_claimed, VaultError::RefundAlreadyClaimed);
-        require!(donor.amount_lamports > 0, VaultError::ZeroAmount);
+        // Validate before mutable borrows
+        require!(ctx.accounts.vault_config.is_refundable, VaultError::NotRefundable);
+        require!(!ctx.accounts.donor.refund_claimed, VaultError::RefundAlreadyClaimed);
+        require!(ctx.accounts.donor.amount_lamports > 0, VaultError::ZeroAmount);
 
-        // Calculate proportional refund
+        // Calculate proportional refund (read-only access)
         let vault_balance = ctx.accounts.vault_config.to_account_info().lamports();
-        let refund_amount = (donor.amount_lamports as u128)
+        let donor_amount = ctx.accounts.donor.amount_lamports;
+        let raised = ctx.accounts.vault_config.raised_lamports;
+        let refund_amount = (donor_amount as u128)
             .checked_mul(vault_balance as u128)
             .ok_or(VaultError::ArithmeticOverflow)?
-            .checked_div(vault.raised_lamports as u128)
+            .checked_div(raised as u128)
             .ok_or(VaultError::ArithmeticOverflow)? as u64;
 
         require!(refund_amount > 0, VaultError::ZeroAmount);
 
-        // Transfer SOL from vault PDA to donor
+        // Transfer SOL from vault PDA to donor (before mutable borrows)
         **ctx
             .accounts
             .vault_config
@@ -883,6 +894,9 @@ pub mod jett_vault {
             .to_account_info()
             .try_borrow_mut_lamports()? += refund_amount;
 
+        // Now borrow mutably for state updates
+        let vault = &mut ctx.accounts.vault_config;
+        let donor = &mut ctx.accounts.donor;
         donor.refund_claimed = true;
 
         emit!(VaultEvent {
@@ -1030,7 +1044,7 @@ pub mod jett_vault {
     // STUB: close_vault (Phase 2, requires multisig)
     // ========================================================================
 
-    pub fn close_vault(ctx: Context<MultisigAction>) -> Result<()> {
+    pub fn close_vault(_ctx: Context<MultisigAction>) -> Result<()> {
         msg!("close_vault: stub — implement in Phase 2");
         Ok(())
     }
@@ -1039,7 +1053,7 @@ pub mod jett_vault {
     // STUB: migrate_from_legacy (founder only)
     // ========================================================================
 
-    pub fn migrate_from_legacy(ctx: Context<FounderOnly>) -> Result<()> {
+    pub fn migrate_from_legacy(_ctx: Context<FounderOnly>) -> Result<()> {
         msg!("migrate_from_legacy: stub — implement when ready");
         Ok(())
     }
