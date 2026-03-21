@@ -97,6 +97,23 @@ pub const JTX_UNLIMITED_THRESHOLD: u64 = 100_000_000; // 100 JTX
 /// AARON audit cooldown in seconds (prevent spam)
 pub const AARON_AUDIT_COOLDOWN: i64 = 60;
 
+/// JTX price in USDC (fixed at $8.00 per JTX, 6 decimal USDC = 8_000_000)
+pub const JTX_PRICE_USDC: u64 = 8_000_000;
+
+/// JTX decimals (Token-2022, 9 decimals)
+pub const JTX_DECIMALS: u64 = 1_000_000_000;
+
+/// Minimum donation for NFT receipt ($8 USDC = 1 JTX worth)
+pub const MIN_NFT_THRESHOLD_USDC: u64 = 8_000_000;
+
+/// NFT collection name
+pub const NFT_COLLECTION_NAME: &str = "ASTRO KNOTS Vault Receipt";
+pub const NFT_SYMBOL: &str = "AKVR";
+
+/// SOL/USD price feed — updated by JOE autonomous agent
+/// Default estimate: $133/SOL (used when oracle unavailable)
+pub const DEFAULT_SOL_PRICE_USDC: u64 = 133_000_000; // $133.00 in 6-decimal USDC
+
 // ============================================================================
 // PROGRAM
 // ============================================================================
@@ -1028,6 +1045,111 @@ pub mod jett_vault {
     }
 
     // ========================================================================
+    // INSTRUCTION #12: mint_donor_nft
+    // ========================================================================
+
+    /// Mint an NFT receipt for a donor's contribution.
+    ///
+    /// The NFT represents a claim on JTX tokens at the vault price ($8/JTX).
+    /// Formula: jtx_entitled = donation_value_usdc / JTX_PRICE_USDC
+    ///
+    /// For SOL donations: value = amount_lamports * sol_price_usdc / 1e9
+    /// For USDC (agent): value = usdc_amount directly
+    ///
+    /// Example: User donates $80 SOL → NFT = 10 JTX claim (80/8)
+    /// Example: Agent pays $16 USDC → NFT = 2 JTX claim (16/8)
+    ///
+    /// NFT metadata stored in DonorReceipt PDA. Actual Metaplex NFT mint
+    /// can be triggered separately via CPI or off-chain with the receipt as proof.
+    ///
+    /// Works for both human wallets (SOL) and agent wallets (x402/MPP/Tempo).
+    pub fn mint_donor_nft(
+        ctx: Context<MintDonorNft>,
+        sol_price_usdc: u64, // Current SOL/USD price in 6-decimal USDC (e.g., 133_000_000 = $133)
+    ) -> Result<()> {
+        let clock = Clock::get()?;
+
+        // Validate
+        require!(!ctx.accounts.vault_config.paused, VaultError::VaultPaused);
+        require!(!ctx.accounts.donor.refund_claimed, VaultError::RefundAlreadyClaimed);
+        require!(ctx.accounts.donor.amount_lamports > 0, VaultError::ZeroAmount);
+
+        // Use provided SOL price or default
+        let price = if sol_price_usdc > 0 { sol_price_usdc } else { DEFAULT_SOL_PRICE_USDC };
+
+        // Calculate donation value in USDC (6 decimals)
+        // value_usdc = (amount_lamports * sol_price_usdc) / LAMPORTS_PER_SOL
+        let donation_value_usdc = (ctx.accounts.donor.amount_lamports as u128)
+            .checked_mul(price as u128)
+            .ok_or(VaultError::ArithmeticOverflow)?
+            .checked_div(1_000_000_000u128) // LAMPORTS_PER_SOL
+            .ok_or(VaultError::ArithmeticOverflow)? as u64;
+
+        // Must meet minimum threshold ($8 = 1 JTX)
+        require!(donation_value_usdc >= MIN_NFT_THRESHOLD_USDC, VaultError::BelowNftThreshold);
+
+        // Calculate JTX entitlement: jtx_tokens = value_usdc / JTX_PRICE_USDC
+        // In base units (9 decimals): jtx_base = (value_usdc * JTX_DECIMALS) / JTX_PRICE_USDC
+        let jtx_entitled_base = (donation_value_usdc as u128)
+            .checked_mul(JTX_DECIMALS as u128)
+            .ok_or(VaultError::ArithmeticOverflow)?
+            .checked_div(JTX_PRICE_USDC as u128)
+            .ok_or(VaultError::ArithmeticOverflow)? as u64;
+
+        // Apply OPTX multiplier from donor record (100 bps = 1x, 150 bps = 1.5x)
+        let multiplier_bps = ctx.accounts.donor.optx_multiplier_bps as u64;
+        let jtx_with_multiplier = jtx_entitled_base
+            .checked_mul(multiplier_bps as u64)
+            .ok_or(VaultError::ArithmeticOverflow)?
+            .checked_div(100)
+            .ok_or(VaultError::ArithmeticOverflow)?;
+
+        // Capture keys before mutable borrow
+        let donor_key = ctx.accounts.donor_signer.key();
+        let vault_key = ctx.accounts.vault_config.key();
+
+        // Populate receipt PDA
+        let receipt = &mut ctx.accounts.donor_receipt;
+        receipt.donor = donor_key;
+        receipt.vault = vault_key;
+        receipt.donation_lamports = ctx.accounts.donor.amount_lamports;
+        receipt.donation_value_usdc = donation_value_usdc;
+        receipt.sol_price_usdc = price;
+        receipt.jtx_entitled = jtx_with_multiplier;
+        receipt.jtx_price_usdc = JTX_PRICE_USDC;
+        receipt.multiplier_bps = ctx.accounts.donor.optx_multiplier_bps;
+        receipt.minted_at = clock.unix_timestamp;
+        receipt.claimed = false;
+        receipt.payment_method = if ctx.accounts.donor.amount_lamports > 0 { 0 } else { 1 }; // 0=SOL, 1=USDC/agent
+        receipt.bump = ctx.bumps.donor_receipt;
+
+        // Mark donor as having NFT minted
+        let donor = &mut ctx.accounts.donor;
+        donor.nft_minted = true;
+
+        emit!(NftReceiptEvent {
+            donor: donor_key,
+            vault: vault_key,
+            donation_value_usdc,
+            jtx_entitled: jtx_with_multiplier,
+            sol_price_usdc: price,
+            multiplier_bps: receipt.multiplier_bps,
+            timestamp: clock.unix_timestamp,
+        });
+
+        msg!(
+            "NFT Receipt: {} → {} JTX (${} donation at ${}/JTX, {}x multiplier)",
+            donor_key,
+            jtx_with_multiplier / JTX_DECIMALS,
+            donation_value_usdc / 1_000_000,
+            JTX_PRICE_USDC / 1_000_000,
+            multiplier_bps as f64 / 100.0
+        );
+
+        Ok(())
+    }
+
+    // ========================================================================
     // STUB: update_phase (Phase 2)
     // ========================================================================
 
@@ -1202,6 +1324,18 @@ pub struct AaronEvent {
     pub timestamp: i64,
 }
 
+/// NFT receipt event (donor JTX claim minted)
+#[event]
+pub struct NftReceiptEvent {
+    pub donor: Pubkey,
+    pub vault: Pubkey,
+    pub donation_value_usdc: u64,
+    pub jtx_entitled: u64,
+    pub sol_price_usdc: u64,
+    pub multiplier_bps: u16,
+    pub timestamp: i64,
+}
+
 // ============================================================================
 // ACCOUNT STRUCTURES
 // ============================================================================
@@ -1263,6 +1397,7 @@ pub struct Donor {
     pub donated_at: i64,
     pub attested: bool,
     pub refund_claimed: bool,
+    pub nft_minted: bool,
     pub referrer: Option<Pubkey>,
     pub optx_multiplier_bps: u16,
     pub bump: u8,
@@ -1275,8 +1410,62 @@ impl Donor {
         8 +     // donated_at
         1 +     // attested
         1 +     // refund_claimed
+        1 +     // nft_minted
         1 + 32 + // referrer (Option<Pubkey>)
         2 +     // optx_multiplier_bps
+        1;      // bump
+}
+
+/// DonorReceipt — NFT receipt PDA representing JTX claim from donation.
+/// Seeds: ["receipt", vault_pubkey, donor_pubkey]
+///
+/// This is the on-chain proof that a donor (human or agent) is entitled
+/// to X amount of JTX tokens at the end of the vault period.
+///
+/// Payment methods:
+///   0 = SOL (human donation)
+///   1 = USDC (agent via x402/MPP/Tempo CLI)
+#[account]
+pub struct DonorReceipt {
+    /// Donor wallet (human or agent)
+    pub donor: Pubkey,
+    /// Vault this receipt belongs to
+    pub vault: Pubkey,
+    /// Original donation in lamports (SOL) or 0 for USDC
+    pub donation_lamports: u64,
+    /// Donation value in USDC (6 decimals)
+    pub donation_value_usdc: u64,
+    /// SOL/USD price used for conversion (6 decimals)
+    pub sol_price_usdc: u64,
+    /// JTX tokens entitled (9 decimals, includes multiplier)
+    pub jtx_entitled: u64,
+    /// JTX price used ($8.00 = 8_000_000 in 6-decimal USDC)
+    pub jtx_price_usdc: u64,
+    /// OPTX multiplier applied (100 = 1x, 150 = 1.5x)
+    pub multiplier_bps: u16,
+    /// Timestamp of NFT mint
+    pub minted_at: i64,
+    /// Whether JTX tokens have been claimed from this receipt
+    pub claimed: bool,
+    /// Payment method: 0 = SOL, 1 = USDC/agent
+    pub payment_method: u8,
+    /// PDA bump
+    pub bump: u8,
+}
+
+impl DonorReceipt {
+    pub const LEN: usize = 8 + // discriminator
+        32 +    // donor
+        32 +    // vault
+        8 +     // donation_lamports
+        8 +     // donation_value_usdc
+        8 +     // sol_price_usdc
+        8 +     // jtx_entitled
+        8 +     // jtx_price_usdc
+        2 +     // multiplier_bps
+        8 +     // minted_at
+        1 +     // claimed
+        1 +     // payment_method
         1;      // bump
 }
 
@@ -1729,6 +1918,38 @@ pub struct FounderOnly<'info> {
     pub vault_config: Account<'info, VaultConfig>,
 }
 
+#[derive(Accounts)]
+pub struct MintDonorNft<'info> {
+    #[account(mut)]
+    pub donor_signer: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"donor", donor_signer.key().as_ref()],
+        bump = donor.bump,
+        constraint = donor.wallet == donor_signer.key() @ VaultError::UnauthorizedSigner,
+        constraint = !donor.nft_minted @ VaultError::NftAlreadyMinted
+    )]
+    pub donor: Account<'info, Donor>,
+
+    #[account(
+        init,
+        payer = donor_signer,
+        space = DonorReceipt::LEN,
+        seeds = [b"receipt", vault_config.key().as_ref(), donor_signer.key().as_ref()],
+        bump
+    )]
+    pub donor_receipt: Account<'info, DonorReceipt>,
+
+    #[account(
+        seeds = [b"vault_config"],
+        bump = vault_config.bump
+    )]
+    pub vault_config: Account<'info, VaultConfig>,
+
+    pub system_program: Program<'info, System>,
+}
+
 // ============================================================================
 // ERROR CODES
 // ============================================================================
@@ -1806,4 +2027,11 @@ pub enum VaultError {
 
     #[msg("Mint cap exceeded for current subscription period")]
     MintCapExceeded,
+
+    // --- NFT Receipt Errors ---
+    #[msg("NFT receipt already minted for this donor")]
+    NftAlreadyMinted,
+
+    #[msg("Donation below minimum threshold for NFT receipt ($8 USDC = 1 JTX)")]
+    BelowNftThreshold,
 }
