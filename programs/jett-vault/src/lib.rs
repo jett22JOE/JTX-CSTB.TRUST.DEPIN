@@ -54,7 +54,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 use anchor_lang::solana_program::hash::hashv;
 
-declare_id!("JVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau1tVau");
+declare_id!("JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7");
 
 // ============================================================================
 // CONSTANTS
