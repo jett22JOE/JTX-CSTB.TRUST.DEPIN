@@ -1,180 +1,208 @@
 /**
- * JTX Vault — Devnet Integration Test
- * =====================================
+ * JTX Vault — Devnet Integration Test (Raw RPC, no IDL required)
+ * ================================================================
  * Tests: initialize_vault → donate_sol → mint_donor_nft
- * 
+ *
  * Run: npx ts-node tests/test_vault_flow.ts
- * Requires: @coral-xyz/anchor, @solana/web3.js
  */
 
-import * as anchor from "@coral-xyz/anchor";
-import { Program } from "@coral-xyz/anchor";
-import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import {
+  Connection,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+  Keypair,
+  LAMPORTS_PER_SOL,
+  sendAndConfirmTransaction,
+} from "@solana/web3.js";
+import * as fs from "fs";
+import * as path from "path";
 
-// Program ID (deployed on devnet)
+// ─── Config ───
 const PROGRAM_ID = new PublicKey("JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7");
+const RPC_URL = process.env.ANCHOR_PROVIDER_URL || "https://devnet.helius-rpc.com/?api-key=98ca6456-20a8-4518-8393-1b9ee6c2b7f3";
+const WALLET_PATH = process.env.ANCHOR_WALLET || `${process.env.HOME}/.config/solana/id.json`;
 
-// Multisig signers (founder + JOE + placeholder for 2-of-3)
+// Known addresses
 const FOUNDER = new PublicKey("FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H");
 const JOE_WALLET = new PublicKey("EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk");
-const PLACEHOLDER = new PublicKey("11111111111111111111111111111111"); // System program as 3rd
+const PLACEHOLDER = new PublicKey("11111111111111111111111111111111");
+
+// ─── Anchor Sighash (first 8 bytes of sha256("global:<name>")) ───
+const { createHash } = require("crypto");
+function sighash(name: string): Buffer {
+  const hash = createHash("sha256").update(`global:${name}`).digest();
+  return hash.slice(0, 8);
+}
+
+// ─── Helpers ───
+function loadKeypair(filepath: string): Keypair {
+  const raw = JSON.parse(fs.readFileSync(filepath, "utf-8"));
+  return Keypair.fromSecretKey(Uint8Array.from(raw));
+}
+
+function encodeBN(value: bigint, bytes: number = 8): Buffer {
+  const buf = Buffer.alloc(bytes);
+  buf.writeBigUInt64LE(value);
+  return buf;
+}
+
+function encodeI64(value: bigint): Buffer {
+  const buf = Buffer.alloc(8);
+  buf.writeBigInt64LE(value);
+  return buf;
+}
+
+function encodePubkeyArray(keys: PublicKey[]): Buffer {
+  return Buffer.concat(keys.map((k) => k.toBuffer()));
+}
 
 async function main() {
-  // Setup
-  const provider = anchor.AnchorProvider.env();
-  anchor.setProvider(provider);
-  
-  const idl = await Program.fetchIdl(PROGRAM_ID, provider);
-  if (!idl) throw new Error("IDL not found — did you deploy with anchor build (not --no-idl)?");
-  const program = new Program(idl, PROGRAM_ID, provider);
+  const connection = new Connection(RPC_URL, "confirmed");
+  const wallet = loadKeypair(WALLET_PATH);
+  const walletPubkey = wallet.publicKey;
 
-  const wallet = provider.wallet.publicKey;
-  console.log("=== JTX VAULT DEVNET TEST ===");
-  console.log("Wallet:", wallet.toBase58());
+  console.log("=== JTX VAULT DEVNET TEST (raw RPC) ===");
+  console.log("Wallet:", walletPubkey.toBase58());
   console.log("Program:", PROGRAM_ID.toBase58());
-  console.log("Balance:", (await provider.connection.getBalance(wallet)) / LAMPORTS_PER_SOL, "SOL");
+  console.log("RPC:", RPC_URL.replace(/api-key=.*/, "api-key=***"));
+  const bal = await connection.getBalance(walletPubkey);
+  console.log("Balance:", bal / LAMPORTS_PER_SOL, "SOL");
 
   // ─── Derive PDAs ───
-  const [vaultPda] = PublicKey.findProgramAddressSync(
+  const [vaultPda, vaultBump] = PublicKey.findProgramAddressSync(
     [Buffer.from("vault_config")],
     PROGRAM_ID
   );
   console.log("Vault PDA:", vaultPda.toBase58());
 
   const [donorPda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("donor"), wallet.toBuffer()],
+    [Buffer.from("donor"), walletPubkey.toBuffer()],
     PROGRAM_ID
   );
   console.log("Donor PDA:", donorPda.toBase58());
 
-  // ─── Test 1: Initialize Vault ───
-  console.log("\n--- TEST 1: initialize_vault ---");
-  try {
-    const now = Math.floor(Date.now() / 1000);
-    const phase1Deadline = new anchor.BN(now + 86400 * 10);  // 10 days
-    const phase2Deadline = new anchor.BN(now + 86400 * 90);  // 90 days
-    const goalLamports = new anchor.BN(5_874 * LAMPORTS_PER_SOL); // 5874 SOL
-
-    const tx = await program.methods
-      .initializeVault(
-        goalLamports,
-        phase1Deadline,
-        phase2Deadline,
-        [FOUNDER, JOE_WALLET, PLACEHOLDER]
-      )
-      .accounts({
-        founder: wallet,
-        vaultConfig: vaultPda,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
-
-    console.log("✅ Vault initialized! TX:", tx);
-  } catch (e: any) {
-    if (e.message?.includes("already in use")) {
-      console.log("⏭️  Vault already initialized (PDA exists)");
-    } else {
-      console.error("❌ Initialize failed:", e.message || e);
-    }
-  }
-
-  // ─── Fetch vault state ───
-  try {
-    const vault = await program.account.vaultConfig.fetch(vaultPda);
-    console.log("Vault state:", {
-      authority: vault.authority.toBase58(),
-      goal: vault.goalLamports.toNumber() / LAMPORTS_PER_SOL + " SOL",
-      raised: vault.raisedLamports.toNumber() / LAMPORTS_PER_SOL + " SOL",
-      phase: vault.phase,
-      donors: vault.donorCount,
-      launched: vault.isLaunched,
-    });
-  } catch (e: any) {
-    console.error("Could not fetch vault:", e.message);
-  }
-
-  // ─── Test 2: Donate SOL ───
-  console.log("\n--- TEST 2: donate_sol (0.01 SOL) ---");
-  try {
-    const donateAmount = new anchor.BN(0.01 * LAMPORTS_PER_SOL); // 0.01 SOL
-
-    const tx = await program.methods
-      .donateSol(donateAmount, null) // no referrer
-      .accounts({
-        donorSigner: wallet,
-        donor: donorPda,
-        vaultConfig: vaultPda,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
-
-    console.log("✅ Donation successful! TX:", tx);
-  } catch (e: any) {
-    console.error("❌ Donate failed:", e.message || e);
-  }
-
-  // ─── Fetch donor state ───
-  try {
-    const donor = await program.account.donor.fetch(donorPda);
-    console.log("Donor state:", {
-      wallet: donor.wallet.toBase58(),
-      deposited: donor.amountLamports.toNumber() / LAMPORTS_PER_SOL + " SOL",
-      multiplier: donor.optxMultiplierBps + " bps",
-      attested: donor.attested,
-      nftMinted: donor.nftMinted,
-    });
-  } catch (e: any) {
-    console.error("Could not fetch donor:", e.message);
-  }
-
-  // ─── Test 3: Mint Donor NFT Receipt ───
-  console.log("\n--- TEST 3: mint_donor_nft ---");
   const [receiptPda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("receipt"), vaultPda.toBuffer(), wallet.toBuffer()],
+    [Buffer.from("receipt"), vaultPda.toBuffer(), walletPubkey.toBuffer()],
     PROGRAM_ID
   );
   console.log("Receipt PDA:", receiptPda.toBase58());
 
+  // ─── Test 1: initialize_vault ───
+  console.log("\n--- TEST 1: initialize_vault ---");
   try {
-    const solPriceUsdc = new anchor.BN(133_000_000); // $133 per SOL
+    const now = BigInt(Math.floor(Date.now() / 1000));
+    const phase1Deadline = now + 86400n * 10n;  // 10 days
+    const phase2Deadline = now + 86400n * 90n;  // 90 days
+    const goalLamports = 5874n * BigInt(LAMPORTS_PER_SOL);
 
-    const tx = await program.methods
-      .mintDonorNft(solPriceUsdc)
-      .accounts({
-        donorSigner: wallet,
-        donor: donorPda,
-        donorReceipt: receiptPda,
-        vaultConfig: vaultPda,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
+    const data = Buffer.concat([
+      sighash("initialize_vault"),
+      encodeBN(goalLamports),
+      encodeI64(phase1Deadline),
+      encodeI64(phase2Deadline),
+      encodePubkeyArray([FOUNDER, JOE_WALLET, PLACEHOLDER]),
+    ]);
 
-    console.log("✅ NFT Receipt minted! TX:", tx);
-  } catch (e: any) {
-    console.error("❌ NFT mint failed:", e.message || e);
-  }
-
-  // ─── Fetch receipt state ───
-  try {
-    const receipt = await program.account.donorReceipt.fetch(receiptPda);
-    console.log("Receipt state:", {
-      donor: receipt.donor.toBase58(),
-      donationUsdc: "$" + (receipt.donationValueUsdc.toNumber() / 1_000_000).toFixed(2),
-      jtxEntitled: (receipt.jtxEntitled.toNumber() / 1_000_000_000).toFixed(4) + " JTX",
-      solPrice: "$" + (receipt.solPriceUsdc.toNumber() / 1_000_000).toFixed(2),
-      multiplier: receipt.multiplierBps + " bps",
-      claimed: receipt.claimed,
-      paymentMethod: receipt.paymentMethod === 0 ? "SOL" : "USDC/agent",
+    const ix = new TransactionInstruction({
+      programId: PROGRAM_ID,
+      keys: [
+        { pubkey: walletPubkey, isSigner: true, isWritable: true },  // founder
+        { pubkey: vaultPda, isSigner: false, isWritable: true },      // vault_config
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      data,
     });
+
+    const tx = new Transaction().add(ix);
+    const sig = await sendAndConfirmTransaction(connection, tx, [wallet]);
+    console.log("✅ Vault initialized! TX:", sig);
   } catch (e: any) {
-    console.error("Could not fetch receipt:", e.message);
+    if (e.message?.includes("already in use")) {
+      console.log("⏭️  Vault already initialized (PDA exists)");
+    } else {
+      console.error("❌ Initialize failed:", e.message?.slice(0, 200) || e);
+    }
   }
 
-  // ─── Final balances ───
+  // ─── Check vault account exists ───
+  const vaultInfo = await connection.getAccountInfo(vaultPda);
+  console.log("Vault account:", vaultInfo ? `${vaultInfo.data.length} bytes, ${vaultInfo.lamports / LAMPORTS_PER_SOL} SOL` : "NOT FOUND");
+
+  // ─── Test 2: donate_sol (0.01 SOL) ───
+  console.log("\n--- TEST 2: donate_sol (0.01 SOL) ---");
+  try {
+    const amount = BigInt(0.01 * LAMPORTS_PER_SOL);
+
+    // Encode: amount (u64) + referrer (Option<Pubkey> = None = 0 byte)
+    const data = Buffer.concat([
+      sighash("donate_sol"),
+      encodeBN(amount),
+      Buffer.from([0]), // None referrer
+    ]);
+
+    const ix = new TransactionInstruction({
+      programId: PROGRAM_ID,
+      keys: [
+        { pubkey: walletPubkey, isSigner: true, isWritable: true },   // donor_signer
+        { pubkey: donorPda, isSigner: false, isWritable: true },       // donor
+        { pubkey: vaultPda, isSigner: false, isWritable: true },       // vault_config
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      data,
+    });
+
+    const tx = new Transaction().add(ix);
+    const sig = await sendAndConfirmTransaction(connection, tx, [wallet]);
+    console.log("✅ Donated 0.01 SOL! TX:", sig);
+  } catch (e: any) {
+    console.error("❌ Donate failed:", e.message?.slice(0, 300) || e);
+  }
+
+  // ─── Check donor account ───
+  const donorInfo = await connection.getAccountInfo(donorPda);
+  console.log("Donor account:", donorInfo ? `${donorInfo.data.length} bytes` : "NOT FOUND");
+
+  // ─── Test 3: mint_donor_nft ───
+  console.log("\n--- TEST 3: mint_donor_nft ---");
+  try {
+    const solPriceUsdc = 133_000_000n; // $133
+
+    const data = Buffer.concat([
+      sighash("mint_donor_nft"),
+      encodeBN(solPriceUsdc),
+    ]);
+
+    const ix = new TransactionInstruction({
+      programId: PROGRAM_ID,
+      keys: [
+        { pubkey: walletPubkey, isSigner: true, isWritable: true },    // donor_signer
+        { pubkey: donorPda, isSigner: false, isWritable: true },        // donor
+        { pubkey: receiptPda, isSigner: false, isWritable: true },      // donor_receipt
+        { pubkey: vaultPda, isSigner: false, isWritable: false },       // vault_config
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+      data,
+    });
+
+    const tx = new Transaction().add(ix);
+    const sig = await sendAndConfirmTransaction(connection, tx, [wallet]);
+    console.log("✅ NFT Receipt minted! TX:", sig);
+  } catch (e: any) {
+    console.error("❌ NFT mint failed:", e.message?.slice(0, 300) || e);
+  }
+
+  // ─── Check receipt account ───
+  const receiptInfo = await connection.getAccountInfo(receiptPda);
+  console.log("Receipt account:", receiptInfo ? `${receiptInfo.data.length} bytes` : "NOT FOUND");
+
+  // ─── Final state ───
   console.log("\n--- FINAL STATE ---");
-  console.log("Wallet balance:", (await provider.connection.getBalance(wallet)) / LAMPORTS_PER_SOL, "SOL");
-  console.log("Vault balance:", (await provider.connection.getBalance(vaultPda)) / LAMPORTS_PER_SOL, "SOL");
+  console.log("Wallet:", (await connection.getBalance(walletPubkey)) / LAMPORTS_PER_SOL, "SOL");
+  console.log("Vault PDA:", vaultInfo ? (await connection.getBalance(vaultPda)) / LAMPORTS_PER_SOL + " SOL" : "N/A");
   console.log("\n=== TEST COMPLETE ===");
+  console.log("View on Solscan: https://solscan.io/account/" + PROGRAM_ID.toBase58() + "?cluster=devnet");
 }
 
 main().catch(console.error);
