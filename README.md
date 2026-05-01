@@ -16,7 +16,7 @@ ________________
 - [astro.knots.sol](https://astroknots.space) -- SNS V2 Domain
 - [jettoptics.ai](https://jettoptics.ai) -- Main Site + DOJO
 - [astroknots.space/aaron](https://astroknots.space/aaron) -- AARON Router API
-- [astroknots.space/docs](https://astroknots.space/docs) -- Developer Docs
+- [jettoptx.dev/docs](https://jettoptx.dev/docs) -- Developer Docs
 
 ---
 
@@ -151,10 +151,15 @@ require!(risk <= 7500)  // 75% threshold for safe minting
 
 ### Subscription Tiers
 
-| Tier | Price | JTX Required | OPTX Rate |
-|------|-------|-------------|-----------|
-| Basic (DOJO) | $28.88/6mo | 1+ JTX | 1x |
-| Unlimited | $88.88/mo | 100+ JTX | 2x |
+Canonical: [astroknots.space/stake](https://www.astroknots.space/stake) — see also [jettoptx.dev/docs/token/tiers](https://jettoptx.dev/docs/token/tiers). Each tier is accessible by **either** staking JTX or paying USD/mo.
+
+| Tier | Subscription | JTX stake | Stake duration | OPTX Rate |
+|------|--------------|-----------|----------------|-----------|
+| **MOJO** | $8.88 / mo | 12 JTX | 1 Year | 1× (12 OPTX/mo) |
+| **DOJO** | $28.88 / mo | 444 JTX | 2 Years | 2× (444 OPTX/mo @ 2× fiat) |
+| **SPACE COWBOY** | $88.88 / mo | 1,111 JTX | Lifetime | Unlimited mints |
+
+Base entry to JettChat: hold 1 JTX, or pay $8.88 (Stripe / Tempo CLI). See [jettoptx.dev/docs/jettchat](https://jettoptx.dev/docs/jettchat) for the full access flow.
 
 ---
 
@@ -415,7 +420,7 @@ Anchor program client for `jett_vault`. Handles vault deposits, AGT attestations
 
 - **JETT OPTICS**: [jettoptics.ai](https://jettoptics.ai)
 - **ASTRO KNOTS Vault**: [astroknots.space](https://astroknots.space)
-- **Developer Docs**: [astroknots.space/docs](https://astroknots.space/docs)
+- **Developer Docs**: [jettoptx.dev/docs](https://jettoptx.dev/docs)
 - **AARON Router**: [github.com/jett22JOE/aaron-router](https://github.com/jett22JOE/aaron-router)
 - **DOJO**: [jettoptics.ai/dojo](https://jettoptics.ai/dojo)
 - **$JTX on Solscan**: [solscan.io](https://solscan.io/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj)
