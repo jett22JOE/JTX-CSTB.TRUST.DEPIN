@@ -1,0 +1,16 @@
+[package]
+name = "shared-constants"
+version = "0.1.0"
+edition = "2021"
+description = "Shared constants for jett-vault, jtx-buy-vault, and jtx-cstb-trust programs. Single source of truth for tier thresholds, mint caps, prices, and oracle feed addresses — prevents threshold/price desync across program upgrades."
+publish = false
+
+[lib]
+crate-type = ["lib", "rlib"]
+
+[features]
+default = []
+no-entrypoint = []
+
+[dependencies]
+# No deps — pure constants. Keeps the crate cheap to depend on.

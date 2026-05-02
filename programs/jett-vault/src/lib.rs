@@ -53,6 +53,15 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 use anchor_lang::solana_program::hash::hashv;
+use anchor_spl::associated_token::AssociatedToken;
+use anchor_spl::token_interface::{
+    self as token_iface, Mint as MintInterface, TokenAccount as TokenAccountInterface,
+    TokenInterface, TransferChecked,
+};
+// `shared_constants` carries the canonical tier thresholds, mint caps, and
+// pricing values used by both jett-vault and jtx-buy-vault. Imported as
+// `shared` for terseness; original Cargo dep is `shared-constants`.
+use shared_constants as shared;
 
 declare_id!("JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7");
 
@@ -808,60 +817,28 @@ pub mod jett_vault {
     //
     // ========================================================================
 
-    /// Set subscription tier on an AGT attestation based on $JTX holdings.
-    /// Tier 1 = Basic (222/month), Tier 2 = Unlimited.
-    /// JOE verifies $JTX balance off-chain before calling this.
+    /// DEPRECATED in v2.1 — use `stake_for_tier(tier)` instead.
+    ///
+    /// The original `set_subscription(tier, jtx_amount)` accepted a
+    /// caller-supplied `jtx_amount` and only checked it against thresholds —
+    /// no actual JTX transfer, no balance verification. Callers could claim
+    /// any tier without holding any JTX (honor-system bug, mainnet-live).
+    ///
+    /// This stub keeps the IDL signature stable so existing callers fail
+    /// loudly with `Deprecated` instead of silently no-op'ing into stale tier
+    /// state. Migrate to `stake_for_tier` which performs an on-chain
+    /// `transfer_checked` of the required JTX amount into the stake vault PDA.
+    ///
+    /// Both args are intentionally ignored — `_tier`, `_jtx_amount`.
     pub fn set_subscription(
-        ctx: Context<SetSubscription>,
-        tier: u8,
-        jtx_amount: u64,
+        _ctx: Context<SetSubscription>,
+        _tier: u8,
+        _jtx_amount: u64,
     ) -> Result<()> {
-        let agt = &mut ctx.accounts.agt_attestation;
-        let clock = Clock::get()?;
-
-        require!(
-            !ctx.accounts.vault_config.paused,
-            VaultError::VaultPaused
-        );
-        require!(agt.is_valid, VaultError::AttestationRevoked);
-        require!(tier == 1 || tier == 2, VaultError::InvalidSubscriptionTier);
-
-        // Verify $JTX threshold for requested tier
-        match tier {
-            1 => require!(
-                jtx_amount >= JTX_BASIC_THRESHOLD,
-                VaultError::InsufficientJtx
-            ),
-            2 => require!(
-                jtx_amount >= JTX_UNLIMITED_THRESHOLD,
-                VaultError::InsufficientJtx
-            ),
-            _ => return Err(VaultError::InvalidSubscriptionTier.into()),
-        }
-
-        agt.subscription_tier = tier;
-
-        // Reset mint counter on tier change
-        agt.mint_count_this_period = 0;
-        agt.period_start = clock.unix_timestamp;
-
-        emit!(VaultEvent {
-            event_type: "set_subscription".to_string(),
-            user: agt.owner,
-            amount: jtx_amount,
-            timestamp: clock.unix_timestamp,
-            referrer: None,
-            phase: ctx.accounts.vault_config.phase,
-        });
-
-        msg!(
-            "Subscription set for {} | tier={} | jtx={}",
-            agt.owner,
-            tier,
-            jtx_amount
-        );
-
-        Ok(())
+        msg!("set_subscription is DEPRECATED in v2.1 — call stake_for_tier(tier) instead. \
+              Required JTX is now transferred on-chain to the stake vault PDA; the old \
+              caller-supplied jtx_amount path is closed.");
+        err!(VaultError::Deprecated)
     }
 
     // ========================================================================
@@ -1264,6 +1241,301 @@ pub mod jett_vault {
         msg!("migrate_from_legacy: stub — implement when ready");
         Ok(())
     }
+
+    // ========================================================================
+    // STAKE SUBSYSTEM (v2.1) — replaces broken honor-system set_subscription.
+    //
+    // Tier × duration × OPTX cap (from `astroknots.space/stake`):
+    //   MOJO         12 JTX    1 year      12 OPTX/mo
+    //   DOJO        444 JTX    2 years    444 OPTX/mo
+    //   SPACE COWBOY 1,111 JTX  Lifetime   Unlimited (PERMANENTLY LOCKED)
+    //
+    // SPACE COWBOY locks JTX with no withdrawal path — by design — for max
+    // peg defense + alignment signal. UI MUST disclose this before signing.
+    //
+    // Helius webhook → AARON Router /stakes/webhooks/helius → SpacetimeDB
+    // jtx_onchain_action mirroring; events emitted below.
+    // ========================================================================
+
+    /// Stake JTX into a tier position. One position per wallet (re-call to
+    /// upgrade requires `restake_upgrade`; downgrade requires `unstake`-then-
+    /// new `stake_for_tier`).
+    pub fn stake_for_tier(ctx: Context<StakeForTier>, tier: u8) -> Result<()> {
+        require!(tier >= 1 && tier <= 3, VaultError::InvalidSubscriptionTier);
+        require!(!ctx.accounts.vault_config.paused, VaultError::VaultPaused);
+
+        let (required_amount, duration) = tier_params(tier)?;
+        require!(
+            ctx.accounts.user_jtx_ata.amount >= required_amount,
+            VaultError::StakeBalanceTooLow
+        );
+
+        let clock = Clock::get()?;
+        let staked_at = clock.unix_timestamp;
+        let expires_at = match tier {
+            3 => shared::LIFETIME_NEVER_EXPIRES,            // SPACE COWBOY: permanent
+            _ => staked_at.saturating_add(duration),
+        };
+
+        // Transfer JTX → stake_vault_ata (Token-2022 transfer_checked).
+        let cpi_accounts = TransferChecked {
+            from: ctx.accounts.user_jtx_ata.to_account_info(),
+            mint: ctx.accounts.jtx_mint.to_account_info(),
+            to: ctx.accounts.stake_vault_ata.to_account_info(),
+            authority: ctx.accounts.user.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+        );
+        token_iface::transfer_checked(cpi_ctx, required_amount, ctx.accounts.jtx_mint.decimals)?;
+
+        // Init stake position.
+        let stake_position = &mut ctx.accounts.stake_position;
+        stake_position.owner = ctx.accounts.user.key();
+        stake_position.tier = tier;
+        stake_position.amount = required_amount;
+        stake_position.staked_at = staked_at;
+        stake_position.expires_at = expires_at;
+        stake_position.status = 0; // active
+        stake_position.bump = ctx.bumps.stake_position;
+
+        // Sync subscription on AGT attestation.
+        let agt = &mut ctx.accounts.agt_attestation;
+        agt.subscription_tier = tier;
+        agt.mint_count_this_period = 0;
+        agt.period_start = staked_at;
+
+        emit!(StakeEvent {
+            owner: ctx.accounts.user.key(),
+            tier,
+            amount: required_amount,
+            staked_at,
+            expires_at,
+        });
+
+        msg!("stake: owner={} tier={} amount={} expires_at={}",
+            ctx.accounts.user.key(), tier, required_amount, expires_at);
+        Ok(())
+    }
+
+    /// Withdraw a non-lifetime stake after expiry. Closes the StakePosition
+    /// PDA (rent refunded to user). SPACE COWBOY (tier 3) cannot be unstaked.
+    pub fn unstake(ctx: Context<Unstake>) -> Result<()> {
+        let stake = &ctx.accounts.stake_position;
+        require!(stake.status == 0, VaultError::StakeAlreadyWithdrawn);
+
+        // SPACE COWBOY = permanent lock, no escape hatch.
+        require!(
+            stake.expires_at != shared::LIFETIME_NEVER_EXPIRES,
+            VaultError::LifetimeStakePermanent
+        );
+
+        let clock = Clock::get()?;
+        require!(
+            clock.unix_timestamp >= stake.expires_at,
+            VaultError::StakeNotExpired
+        );
+
+        let amount = stake.amount;
+        let tier = stake.tier;
+
+        // Sign as stake_vault_authority PDA to release the locked JTX.
+        let vault_config_key = ctx.accounts.vault_config.key();
+        let bump = ctx.bumps.stake_vault_authority;
+        let seeds: &[&[u8]] = &[
+            b"stake_vault_authority",
+            vault_config_key.as_ref(),
+            &[bump],
+        ];
+        let signer_seeds: &[&[&[u8]]] = &[seeds];
+
+        let cpi_accounts = TransferChecked {
+            from: ctx.accounts.stake_vault_ata.to_account_info(),
+            mint: ctx.accounts.jtx_mint.to_account_info(),
+            to: ctx.accounts.user_jtx_ata.to_account_info(),
+            authority: ctx.accounts.stake_vault_authority.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer_seeds,
+        );
+        token_iface::transfer_checked(cpi_ctx, amount, ctx.accounts.jtx_mint.decimals)?;
+
+        // Reset AGT subscription tier on unstake.
+        let agt = &mut ctx.accounts.agt_attestation;
+        agt.subscription_tier = 0;
+        agt.mint_count_this_period = 0;
+
+        emit!(UnstakeEvent {
+            owner: ctx.accounts.user.key(),
+            tier,
+            amount,
+            withdrew_at: clock.unix_timestamp,
+        });
+
+        msg!("unstake: owner={} tier={} amount={}",
+            ctx.accounts.user.key(), tier, amount);
+        // StakePosition PDA closed via `close = user` constraint (rent refund).
+        Ok(())
+    }
+
+    /// Upgrade an active stake to a higher tier by transferring the delta.
+    /// Resets `expires_at` to `now + new_tier_duration` (or 0 for SPACE COWBOY).
+    /// Downgrades NOT supported — call unstake-then-stake_for_tier.
+    pub fn restake_upgrade(ctx: Context<RestakeUpgrade>, new_tier: u8) -> Result<()> {
+        require!(new_tier >= 1 && new_tier <= 3, VaultError::InvalidSubscriptionTier);
+        require!(!ctx.accounts.vault_config.paused, VaultError::VaultPaused);
+
+        let stake = &ctx.accounts.stake_position;
+        require!(new_tier > stake.tier, VaultError::InvalidTierUpgrade);
+
+        let (new_required, new_duration) = tier_params(new_tier)?;
+        let delta = new_required.saturating_sub(stake.amount);
+        require!(delta > 0, VaultError::InvalidTierUpgrade);
+        require!(
+            ctx.accounts.user_jtx_ata.amount >= delta,
+            VaultError::StakeBalanceTooLow
+        );
+
+        // Transfer delta to stake_vault_ata.
+        let cpi_accounts = TransferChecked {
+            from: ctx.accounts.user_jtx_ata.to_account_info(),
+            mint: ctx.accounts.jtx_mint.to_account_info(),
+            to: ctx.accounts.stake_vault_ata.to_account_info(),
+            authority: ctx.accounts.user.to_account_info(),
+        };
+        let cpi_ctx = CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+        );
+        token_iface::transfer_checked(cpi_ctx, delta, ctx.accounts.jtx_mint.decimals)?;
+
+        let clock = Clock::get()?;
+        let now = clock.unix_timestamp;
+        let new_expires_at = match new_tier {
+            3 => shared::LIFETIME_NEVER_EXPIRES,
+            _ => now.saturating_add(new_duration),
+        };
+        let old_tier = stake.tier;
+
+        // Mutate stake position.
+        let stake_mut = &mut ctx.accounts.stake_position;
+        stake_mut.tier = new_tier;
+        stake_mut.amount = new_required;
+        stake_mut.expires_at = new_expires_at;
+
+        // Sync AGT subscription.
+        let agt = &mut ctx.accounts.agt_attestation;
+        agt.subscription_tier = new_tier;
+        agt.mint_count_this_period = 0;
+        agt.period_start = now;
+
+        emit!(RestakeUpgradeEvent {
+            owner: ctx.accounts.user.key(),
+            old_tier,
+            new_tier,
+            delta_amount: delta,
+            new_expires_at,
+            upgraded_at: now,
+        });
+
+        msg!("restake_upgrade: owner={} {} → {} delta={}",
+            ctx.accounts.user.key(), old_tier, new_tier, delta);
+        Ok(())
+    }
+
+    /// One-time multisig-gated batch reset of fake-tier `subscription_tier`
+    /// values left over from the broken honor-system set_subscription. Pass
+    /// target AgtAttestation accounts in `remaining_accounts`.
+    ///
+    /// Caller must be in vault_config.multisig_signers AND pending_action
+    /// must be a migrate-action with ≥ 2 approvals (existing multisig flow
+    /// is reused — no new state needed). Frontend prepares the batch and
+    /// founders co-sign through the standard multisig propose/approve cycle.
+    pub fn migrate_v2_thresholds<'info>(
+        ctx: Context<'_, '_, '_, 'info, MigrateV2Thresholds<'info>>,
+    ) -> Result<()> {
+        let vault_config = &ctx.accounts.vault_config;
+        let signer_key = ctx.accounts.signer.key();
+
+        // Caller must be a registered multisig signer.
+        let is_signer_in_multisig = vault_config
+            .multisig_signers
+            .iter()
+            .any(|p| *p == signer_key);
+        require!(is_signer_in_multisig, VaultError::Unauthorized);
+
+        // 2-of-3 threshold check on currently-tracked approvals.
+        let approval_count = vault_config
+            .multisig_approvals
+            .iter()
+            .filter(|&&approved| approved)
+            .count() as u8;
+        require!(
+            approval_count >= MULTISIG_THRESHOLD,
+            VaultError::MultisigNotApproved
+        );
+
+        let clock = Clock::get()?;
+        let mut migrated: u32 = 0;
+
+        // Iterate target AgtAttestation accounts in remaining_accounts.
+        // try_deserialize() implicitly validates the Anchor account discriminator,
+        // so unrelated accounts are silently skipped.
+        for ai in ctx.remaining_accounts.iter() {
+            let mut data = ai.try_borrow_mut_data()?;
+            if data.len() < AgtAttestation::LEN {
+                continue;
+            }
+            let mut buf: &[u8] = &data;
+            let mut agt: AgtAttestation = match AgtAttestation::try_deserialize(&mut buf) {
+                Ok(a) => a,
+                Err(_) => continue, // Not an AgtAttestation — skip silently.
+            };
+
+            // Wipe the fake tier and counters.
+            if agt.subscription_tier != 0 {
+                agt.subscription_tier = 0;
+                agt.mint_count_this_period = 0;
+
+                // Re-serialize back into the account's data slice.
+                let mut writer: &mut [u8] = &mut data;
+                agt.try_serialize(&mut writer)?;
+                migrated = migrated.saturating_add(1);
+            }
+        }
+
+        // Reset multisig approvals after action lands.
+        let vault_mut = &mut ctx.accounts.vault_config;
+        for slot in vault_mut.multisig_approvals.iter_mut() {
+            *slot = false;
+        }
+        vault_mut.pending_action = 0;
+
+        emit!(MigrateV2Event {
+            batch_count: migrated,
+            timestamp: clock.unix_timestamp,
+        });
+
+        msg!("migrate_v2_thresholds: migrated {} attestation(s)", migrated);
+        Ok(())
+    }
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Stake helpers (private — referenced only by stake_for_tier / restake_upgrade)
+// ───────────────────────────────────────────────────────────────────────────
+
+/// Look up (required_jtx, duration_seconds) for a given tier byte.
+fn tier_params(tier: u8) -> Result<(u64, i64)> {
+    match tier {
+        1 => Ok((shared::JTX_MOJO_THRESHOLD, shared::MOJO_DURATION_SECONDS)),
+        2 => Ok((shared::JTX_DOJO_THRESHOLD, shared::DOJO_DURATION_SECONDS)),
+        3 => Ok((shared::JTX_SPACE_COWBOY_THRESHOLD, shared::LIFETIME_NEVER_EXPIRES)),
+        _ => err!(VaultError::InvalidSubscriptionTier),
+    }
 }
 
 // ============================================================================
@@ -1418,6 +1690,45 @@ pub struct NftReceiptEvent {
     pub jtx_entitled: u64,
     pub sol_price_usdc: u64,
     pub multiplier_bps: u16,
+    pub timestamp: i64,
+}
+
+// --- Stake subsystem events (v2.1) -----------------------------------------
+//
+// Emitted by stake_for_tier / unstake / restake_upgrade. AARON Router's
+// /stakes/webhooks/helius handler consumes these via Helius webhook and
+// writes parallel rows into SpacetimeDB jtx_onchain_action.
+
+#[event]
+pub struct StakeEvent {
+    pub owner: Pubkey,
+    pub tier: u8,
+    pub amount: u64,
+    pub staked_at: i64,
+    pub expires_at: i64, // 0 = lifetime (SPACE COWBOY)
+}
+
+#[event]
+pub struct UnstakeEvent {
+    pub owner: Pubkey,
+    pub tier: u8,
+    pub amount: u64,
+    pub withdrew_at: i64,
+}
+
+#[event]
+pub struct RestakeUpgradeEvent {
+    pub owner: Pubkey,
+    pub old_tier: u8,
+    pub new_tier: u8,
+    pub delta_amount: u64,
+    pub new_expires_at: i64, // 0 = lifetime
+    pub upgraded_at: i64,
+}
+
+#[event]
+pub struct MigrateV2Event {
+    pub batch_count: u32,
     pub timestamp: i64,
 }
 
@@ -1717,6 +2028,37 @@ impl AaronAuditAccount {
         2 +     // emo_score
         32 +    // audit_notes_hash
         8 +     // audited_at
+        1;      // bump
+}
+
+/// StakePosition — per-wallet locked-JTX position unlocking a subscription tier.
+///
+/// One position per wallet (PDA seeds: ["stake", owner]). To upgrade tier the
+/// holder calls `restake_upgrade` (transfers the delta + extends expiry). To
+/// withdraw at end-of-term the holder calls `unstake` after `expires_at`.
+///
+/// SPACE COWBOY (tier 3) has `expires_at = 0` and CANNOT be unstaked — the
+/// 1,111 JTX is permanently locked in `stake_vault_ata`. This is the maximum
+/// alignment commitment and there is intentionally no escape hatch.
+#[account]
+pub struct StakePosition {
+    pub owner: Pubkey,       // 32 — user wallet
+    pub tier: u8,            // 1  — 1=MOJO, 2=DOJO, 3=SPACE COWBOY
+    pub amount: u64,         // 8  — locked JTX in 9-decimal raw
+    pub staked_at: i64,      // 8  — unix timestamp at stake
+    pub expires_at: i64,     // 8  — staked_at + duration; 0 = lifetime
+    pub status: u8,          // 1  — 0=active, 1=withdrawn (terminal)
+    pub bump: u8,            // 1
+}
+
+impl StakePosition {
+    pub const LEN: usize = 8 + // discriminator
+        32 +    // owner
+        1 +     // tier
+        8 +     // amount
+        8 +     // staked_at
+        8 +     // expires_at
+        1 +     // status
         1;      // bump
 }
 
@@ -2105,6 +2447,211 @@ pub struct MintDonorNft<'info> {
     pub system_program: Program<'info, System>,
 }
 
+// ───────────────────────────────────────────────────────────────────────────
+// Stake subsystem accounts (v2.1)
+// ───────────────────────────────────────────────────────────────────────────
+//
+// PDAs:
+//   stake_position           [b"stake", owner]
+//   stake_vault_authority    [b"stake_vault_authority", vault_config]
+//   stake_vault_ata          ATA(stake_vault_authority, jtx_mint, Token2022)
+//
+// All transfers use Token-2022 `transfer_checked` (required because JTX is
+// Token-2022; the program must enforce mint identity even if transferFee=0bps
+// today, in case extensions are toggled in future deploys — though after the
+// 2026-04-30 revoke that's no longer possible).
+
+#[derive(Accounts)]
+#[instruction(tier: u8)]
+pub struct StakeForTier<'info> {
+    #[account(mut)]
+    pub user: Signer<'info>,
+
+    /// User's JTX ATA — must hold ≥ tier threshold.
+    #[account(
+        mut,
+        token::mint = jtx_mint,
+        token::authority = user,
+    )]
+    pub user_jtx_ata: InterfaceAccount<'info, TokenAccountInterface>,
+
+    /// New stake position (one per wallet).
+    #[account(
+        init,
+        payer = user,
+        space = StakePosition::LEN,
+        seeds = [b"stake", user.key().as_ref()],
+        bump
+    )]
+    pub stake_position: Account<'info, StakePosition>,
+
+    /// CHECK: Program-owned PDA that holds the locked JTX. Address-only;
+    /// no data lives at this PDA — it's just a signer for the stake_vault_ata.
+    #[account(
+        seeds = [b"stake_vault_authority", vault_config.key().as_ref()],
+        bump
+    )]
+    pub stake_vault_authority: UncheckedAccount<'info>,
+
+    /// Stake vault's JTX ATA. Initialized on first stake of any tier.
+    #[account(
+        init_if_needed,
+        payer = user,
+        associated_token::mint = jtx_mint,
+        associated_token::authority = stake_vault_authority,
+    )]
+    pub stake_vault_ata: InterfaceAccount<'info, TokenAccountInterface>,
+
+    /// Caller must already have a valid gaze attestation (preserves the
+    /// "gaze before stake" model — tiers gate optical-proof users only).
+    #[account(
+        mut,
+        seeds = [b"agt_attestation", user.key().as_ref()],
+        bump = agt_attestation.bump,
+        constraint = agt_attestation.owner == user.key() @ VaultError::Unauthorized,
+        constraint = agt_attestation.is_valid @ VaultError::AttestationRevoked,
+    )]
+    pub agt_attestation: Account<'info, AgtAttestation>,
+
+    #[account(
+        seeds = [b"vault_config"],
+        bump = vault_config.bump
+    )]
+    pub vault_config: Account<'info, VaultConfig>,
+
+    pub jtx_mint: InterfaceAccount<'info, MintInterface>,
+    pub token_program: Interface<'info, TokenInterface>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct Unstake<'info> {
+    #[account(mut)]
+    pub user: Signer<'info>,
+
+    #[account(
+        mut,
+        token::mint = jtx_mint,
+        token::authority = user,
+    )]
+    pub user_jtx_ata: InterfaceAccount<'info, TokenAccountInterface>,
+
+    /// Stake position must exist, be owned by `user`, and be active. Closed
+    /// (rent refunded) on successful withdrawal — re-stake creates a new one.
+    #[account(
+        mut,
+        close = user,
+        seeds = [b"stake", user.key().as_ref()],
+        bump = stake_position.bump,
+        constraint = stake_position.owner == user.key() @ VaultError::Unauthorized,
+        constraint = stake_position.status == 0 @ VaultError::StakeAlreadyWithdrawn,
+    )]
+    pub stake_position: Account<'info, StakePosition>,
+
+    /// CHECK: signer PDA via seeds.
+    #[account(
+        seeds = [b"stake_vault_authority", vault_config.key().as_ref()],
+        bump
+    )]
+    pub stake_vault_authority: UncheckedAccount<'info>,
+
+    #[account(
+        mut,
+        associated_token::mint = jtx_mint,
+        associated_token::authority = stake_vault_authority,
+    )]
+    pub stake_vault_ata: InterfaceAccount<'info, TokenAccountInterface>,
+
+    #[account(
+        mut,
+        seeds = [b"agt_attestation", user.key().as_ref()],
+        bump = agt_attestation.bump,
+    )]
+    pub agt_attestation: Account<'info, AgtAttestation>,
+
+    #[account(
+        seeds = [b"vault_config"],
+        bump = vault_config.bump
+    )]
+    pub vault_config: Account<'info, VaultConfig>,
+
+    pub jtx_mint: InterfaceAccount<'info, MintInterface>,
+    pub token_program: Interface<'info, TokenInterface>,
+}
+
+#[derive(Accounts)]
+#[instruction(new_tier: u8)]
+pub struct RestakeUpgrade<'info> {
+    #[account(mut)]
+    pub user: Signer<'info>,
+
+    #[account(
+        mut,
+        token::mint = jtx_mint,
+        token::authority = user,
+    )]
+    pub user_jtx_ata: InterfaceAccount<'info, TokenAccountInterface>,
+
+    /// Existing stake position — must be active and lower tier than new_tier.
+    #[account(
+        mut,
+        seeds = [b"stake", user.key().as_ref()],
+        bump = stake_position.bump,
+        constraint = stake_position.owner == user.key() @ VaultError::Unauthorized,
+        constraint = stake_position.status == 0 @ VaultError::StakeAlreadyWithdrawn,
+    )]
+    pub stake_position: Account<'info, StakePosition>,
+
+    /// CHECK: signer PDA via seeds (not used here as signer, just for ATA derivation).
+    #[account(
+        seeds = [b"stake_vault_authority", vault_config.key().as_ref()],
+        bump
+    )]
+    pub stake_vault_authority: UncheckedAccount<'info>,
+
+    #[account(
+        mut,
+        associated_token::mint = jtx_mint,
+        associated_token::authority = stake_vault_authority,
+    )]
+    pub stake_vault_ata: InterfaceAccount<'info, TokenAccountInterface>,
+
+    #[account(
+        mut,
+        seeds = [b"agt_attestation", user.key().as_ref()],
+        bump = agt_attestation.bump,
+    )]
+    pub agt_attestation: Account<'info, AgtAttestation>,
+
+    #[account(
+        seeds = [b"vault_config"],
+        bump = vault_config.bump
+    )]
+    pub vault_config: Account<'info, VaultConfig>,
+
+    pub jtx_mint: InterfaceAccount<'info, MintInterface>,
+    pub token_program: Interface<'info, TokenInterface>,
+}
+
+#[derive(Accounts)]
+pub struct MigrateV2Thresholds<'info> {
+    /// Caller must be in vault_config.multisig_signers and have 2-of-3
+    /// approvals on `pending_action == ACTION_MIGRATE_V2`.
+    pub signer: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"vault_config"],
+        bump = vault_config.bump
+    )]
+    pub vault_config: Account<'info, VaultConfig>,
+
+    // Caller passes target AgtAttestation accounts in remaining_accounts.
+    // Each is mutated in the instruction body via account-info iteration —
+    // see migrate_v2_thresholds() for the safe-deserialize loop.
+}
+
 // ============================================================================
 // ERROR CODES
 // ============================================================================
@@ -2189,4 +2736,41 @@ pub enum VaultError {
 
     #[msg("Donation below minimum threshold for NFT receipt ($8 USDC = 1 JTX)")]
     BelowNftThreshold,
+
+    // --- Stake Subsystem Errors (v2.1) ---
+    #[msg("Caller is not authorized for this action")]
+    Unauthorized,
+
+    #[msg("This instruction is deprecated — use stake_for_tier(tier) instead")]
+    Deprecated,
+
+    #[msg("Stake position already exists for this wallet — call unstake or restake_upgrade")]
+    StakeAlreadyExists,
+
+    #[msg("Stake has not yet expired — cannot withdraw before expires_at")]
+    StakeNotExpired,
+
+    #[msg("SPACE COWBOY lifetime stake is permanently locked — no withdrawal possible, ever")]
+    LifetimeStakePermanent,
+
+    #[msg("Stake position has already been withdrawn (terminal state)")]
+    StakeAlreadyWithdrawn,
+
+    #[msg("New tier must be strictly higher than current tier (no downgrade via restake_upgrade)")]
+    InvalidTierUpgrade,
+
+    #[msg("Caller's $JTX ATA balance is below the required threshold for this tier")]
+    StakeBalanceTooLow,
+
+    #[msg("Multisig action not approved (need 2-of-3 signers on pending_action)")]
+    MultisigNotApproved,
+
+    #[msg("Migration already applied for this attestation")]
+    AlreadyMigrated,
+
+    #[msg("Pyth price feed is missing or stale (older than MAX_PYTH_AGE_SECONDS)")]
+    PythPriceStale,
+
+    #[msg("AARON audit is too stale for high-tier mint (> AARON_AUDIT_FRESHNESS_FOR_NFT_SECONDS)")]
+    AuditTooStale,
 }

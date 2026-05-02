@@ -20,6 +20,7 @@ idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 
 [dependencies]
 anchor-lang = { version = "0.30.1", features = ["init-if-needed"] }
-anchor-spl = { version = "0.30.1", features = ["token", "token_2022"] }
+anchor-spl = { version = "0.30.1", features = ["token", "token_2022", "associated_token"] }
 solana-program = "1.18"
 jtx-cstb-trust = { path = "../jtx-cstb-trust", features = ["cpi"] }
+shared-constants = { path = "../shared-constants" }
