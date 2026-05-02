@@ -2471,6 +2471,8 @@ pub struct FounderOnly<'info> {
     pub vault_config: Account<'info, VaultConfig>,
 }
 
+// Account fields are Box<...> to keep MintDonorNft::try_accounts under the
+// BPF 4KB stack ceiling — same pattern used by DonateJtx (commit 0256cfc).
 #[derive(Accounts)]
 pub struct MintDonorNft<'info> {
     #[account(mut)]
@@ -2483,7 +2485,7 @@ pub struct MintDonorNft<'info> {
         constraint = donor.wallet == donor_signer.key() @ VaultError::UnauthorizedSigner,
         constraint = !donor.nft_minted @ VaultError::NftAlreadyMinted
     )]
-    pub donor: Account<'info, Donor>,
+    pub donor: Box<Account<'info, Donor>>,
 
     #[account(
         init,
@@ -2492,13 +2494,13 @@ pub struct MintDonorNft<'info> {
         seeds = [b"receipt", vault_config.key().as_ref(), donor_signer.key().as_ref()],
         bump
     )]
-    pub donor_receipt: Account<'info, DonorReceipt>,
+    pub donor_receipt: Box<Account<'info, DonorReceipt>>,
 
     #[account(
         seeds = [b"vault_config"],
         bump = vault_config.bump
     )]
-    pub vault_config: Account<'info, VaultConfig>,
+    pub vault_config: Box<Account<'info, VaultConfig>>,
 
     /// Donor's AGT attestation — must be owned by the signer and still valid.
     /// Required so we can pin `aaron_audit_account` to this attestation below.
@@ -2508,7 +2510,7 @@ pub struct MintDonorNft<'info> {
         constraint = agt_attestation.owner == donor_signer.key() @ VaultError::UnauthorizedSigner,
         constraint = agt_attestation.is_valid @ VaultError::AttestationRevoked,
     )]
-    pub agt_attestation: Account<'info, AgtAttestation>,
+    pub agt_attestation: Box<Account<'info, AgtAttestation>>,
 
     /// AARON audit PDA bound to the donor's `agt_attestation`. Freshness is
     /// enforced in the handler against `AARON_AUDIT_FRESHNESS_FOR_NFT_SECONDS`.
@@ -2518,11 +2520,11 @@ pub struct MintDonorNft<'info> {
         constraint = aaron_audit_account.agt_attestation == agt_attestation.key()
             @ VaultError::Unauthorized,
     )]
-    pub aaron_audit_account: Account<'info, AaronAuditAccount>,
+    pub aaron_audit_account: Box<Account<'info, AaronAuditAccount>>,
 
     /// Pyth SOL/USD price update (PriceUpdateV2 PDA, posted by anyone via the
     /// Pyth Solana Receiver). Read on-chain — caller no longer supplies price.
-    pub pyth_price_update: Account<'info, PriceUpdateV2>,
+    pub pyth_price_update: Box<Account<'info, PriceUpdateV2>>,
 
     pub system_program: Program<'info, System>,
 }
@@ -2541,6 +2543,9 @@ pub struct MintDonorNft<'info> {
 // today, in case extensions are toggled in future deploys — though after the
 // 2026-04-30 revoke that's no longer possible).
 
+// All Account/InterfaceAccount fields are Box<...> to keep
+// StakeForTier::try_accounts under the BPF 4KB stack ceiling. Without
+// boxing the function frame is ~5.9KB. Same pattern as DonateJtx.
 #[derive(Accounts)]
 #[instruction(tier: u8)]
 pub struct StakeForTier<'info> {
@@ -2553,7 +2558,7 @@ pub struct StakeForTier<'info> {
         token::mint = jtx_mint,
         token::authority = user,
     )]
-    pub user_jtx_ata: InterfaceAccount<'info, TokenAccountInterface>,
+    pub user_jtx_ata: Box<InterfaceAccount<'info, TokenAccountInterface>>,
 
     /// New stake position (one per wallet).
     #[account(
@@ -2563,7 +2568,7 @@ pub struct StakeForTier<'info> {
         seeds = [b"stake", user.key().as_ref()],
         bump
     )]
-    pub stake_position: Account<'info, StakePosition>,
+    pub stake_position: Box<Account<'info, StakePosition>>,
 
     /// CHECK: Program-owned PDA that holds the locked JTX. Address-only;
     /// no data lives at this PDA — it's just a signer for the stake_vault_ata.
@@ -2580,7 +2585,7 @@ pub struct StakeForTier<'info> {
         associated_token::mint = jtx_mint,
         associated_token::authority = stake_vault_authority,
     )]
-    pub stake_vault_ata: InterfaceAccount<'info, TokenAccountInterface>,
+    pub stake_vault_ata: Box<InterfaceAccount<'info, TokenAccountInterface>>,
 
     /// Caller must already have a valid gaze attestation (preserves the
     /// "gaze before stake" model — tiers gate optical-proof users only).
@@ -2591,15 +2596,15 @@ pub struct StakeForTier<'info> {
         constraint = agt_attestation.owner == user.key() @ VaultError::Unauthorized,
         constraint = agt_attestation.is_valid @ VaultError::AttestationRevoked,
     )]
-    pub agt_attestation: Account<'info, AgtAttestation>,
+    pub agt_attestation: Box<Account<'info, AgtAttestation>>,
 
     #[account(
         seeds = [b"vault_config"],
         bump = vault_config.bump
     )]
-    pub vault_config: Account<'info, VaultConfig>,
+    pub vault_config: Box<Account<'info, VaultConfig>>,
 
-    pub jtx_mint: InterfaceAccount<'info, MintInterface>,
+    pub jtx_mint: Box<InterfaceAccount<'info, MintInterface>>,
     pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,

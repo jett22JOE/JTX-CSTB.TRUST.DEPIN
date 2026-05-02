@@ -6,11 +6,15 @@ description = "Shared constants for jett-vault, jtx-buy-vault, and jtx-cstb-trus
 publish = false
 
 [lib]
-crate-type = ["lib", "rlib"]
+crate-type = ["rlib"]
 
 [features]
 default = []
 no-entrypoint = []
+# Anchor's IDL build pass invokes every workspace crate with `--features
+# idl-build`. shared-constants has no anchor deps, so this is intentionally
+# an empty feature flag — present only to satisfy the toolchain.
+idl-build = []
 
 [dependencies]
 # No deps — pure constants. Keeps the crate cheap to depend on.
