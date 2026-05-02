@@ -62,6 +62,10 @@ use anchor_spl::token_interface::{
 // pricing values used by both jett-vault and jtx-buy-vault. Imported as
 // `shared` for terseness; original Cargo dep is `shared-constants`.
 use shared_constants as shared;
+// Pyth Solana Receiver SDK — on-chain SOL/USD oracle reads via wormhole-relayed
+// price updates posted to PriceUpdateV2 PDAs. We never trust caller-supplied
+// prices anymore; mint_donor_nft requires a fresh price update at tx time.
+use pyth_solana_receiver_sdk::price_update::PriceUpdateV2;
 
 declare_id!("JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7");
 
@@ -1125,10 +1129,7 @@ pub mod jett_vault {
     /// can be triggered separately via CPI or off-chain with the receipt as proof.
     ///
     /// Works for both human wallets (SOL) and agent wallets (x402/MPP/Tempo).
-    pub fn mint_donor_nft(
-        ctx: Context<MintDonorNft>,
-        sol_price_usdc: u64, // Current SOL/USD price in 6-decimal USDC (e.g., 133_000_000 = $133)
-    ) -> Result<()> {
+    pub fn mint_donor_nft(ctx: Context<MintDonorNft>) -> Result<()> {
         let clock = Clock::get()?;
 
         // Validate
@@ -1136,8 +1137,32 @@ pub mod jett_vault {
         require!(!ctx.accounts.donor.refund_claimed, VaultError::RefundAlreadyClaimed);
         require!(ctx.accounts.donor.amount_lamports > 0, VaultError::ZeroAmount);
 
-        // Use provided SOL price or default
-        let price = if sol_price_usdc > 0 { sol_price_usdc } else { DEFAULT_SOL_PRICE_USDC };
+        // AARON audit freshness — the donor must have run aaron_audit within
+        // AARON_AUDIT_FRESHNESS_FOR_NFT_SECONDS (5 min) before minting. The
+        // Accounts struct already pins aaron_audit_account to the donor's
+        // agt_attestation; here we only enforce the time bound.
+        let audit_age = clock
+            .unix_timestamp
+            .saturating_sub(ctx.accounts.aaron_audit_account.audited_at);
+        require!(
+            audit_age <= shared::AARON_AUDIT_FRESHNESS_FOR_NFT_SECONDS,
+            VaultError::AuditTooStale
+        );
+
+        // SOL/USD price from Pyth (≤ MAX_PYTH_AGE_SECONDS old). The receiver
+        // SDK validates freshness internally and returns Err on stale/missing
+        // updates → mapped to VaultError::PythPriceStale. No caller-supplied
+        // price path remains: a stale or absent Pyth update fails the tx.
+        let pyth_price = ctx
+            .accounts
+            .pyth_price_update
+            .get_price_no_older_than(
+                &clock,
+                shared::MAX_PYTH_AGE_SECONDS,
+                &shared::PYTH_SOL_USD_FEED_ID,
+            )
+            .map_err(|_| error!(VaultError::PythPriceStale))?;
+        let price = scale_pyth_to_usdc6(pyth_price.price, pyth_price.exponent)?;
 
         // Calculate donation value in USDC (6 decimals)
         // value_usdc = (amount_lamports * sol_price_usdc) / LAMPORTS_PER_SOL
@@ -1536,6 +1561,37 @@ fn tier_params(tier: u8) -> Result<(u64, i64)> {
         3 => Ok((shared::JTX_SPACE_COWBOY_THRESHOLD, shared::LIFETIME_NEVER_EXPIRES)),
         _ => err!(VaultError::InvalidSubscriptionTier),
     }
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Pyth helpers
+// ───────────────────────────────────────────────────────────────────────────
+
+/// Convert a Pyth `Price { price, exponent }` (USD value = price · 10^exponent)
+/// to a u64 in 6-decimal USDC. Negative or zero prices are rejected as
+/// `PythPriceStale` — there is no legitimate path where SOL/USD ≤ 0. Overflow
+/// or down-shift to zero in either direction maps to `ArithmeticOverflow`.
+fn scale_pyth_to_usdc6(price: i64, exponent: i32) -> Result<u64> {
+    require!(price > 0, VaultError::PythPriceStale);
+    let price_u128 = price as u128;
+    // USDC has 6 decimals → target exponent is -6. Shift = exponent - (-6).
+    let shift: i32 = exponent + 6;
+    let scaled: u128 = if shift >= 0 {
+        let factor = 10u128
+            .checked_pow(shift as u32)
+            .ok_or(VaultError::ArithmeticOverflow)?;
+        price_u128
+            .checked_mul(factor)
+            .ok_or(VaultError::ArithmeticOverflow)?
+    } else {
+        let factor = 10u128
+            .checked_pow((-shift) as u32)
+            .ok_or(VaultError::ArithmeticOverflow)?;
+        price_u128
+            .checked_div(factor)
+            .ok_or(VaultError::ArithmeticOverflow)?
+    };
+    u64::try_from(scaled).map_err(|_| error!(VaultError::ArithmeticOverflow))
 }
 
 // ============================================================================
@@ -2443,6 +2499,30 @@ pub struct MintDonorNft<'info> {
         bump = vault_config.bump
     )]
     pub vault_config: Account<'info, VaultConfig>,
+
+    /// Donor's AGT attestation — must be owned by the signer and still valid.
+    /// Required so we can pin `aaron_audit_account` to this attestation below.
+    #[account(
+        seeds = [b"agt_attestation", agt_attestation.owner.as_ref()],
+        bump = agt_attestation.bump,
+        constraint = agt_attestation.owner == donor_signer.key() @ VaultError::UnauthorizedSigner,
+        constraint = agt_attestation.is_valid @ VaultError::AttestationRevoked,
+    )]
+    pub agt_attestation: Account<'info, AgtAttestation>,
+
+    /// AARON audit PDA bound to the donor's `agt_attestation`. Freshness is
+    /// enforced in the handler against `AARON_AUDIT_FRESHNESS_FOR_NFT_SECONDS`.
+    #[account(
+        seeds = [b"aaron_audit", agt_attestation.key().as_ref()],
+        bump = aaron_audit_account.bump,
+        constraint = aaron_audit_account.agt_attestation == agt_attestation.key()
+            @ VaultError::Unauthorized,
+    )]
+    pub aaron_audit_account: Account<'info, AaronAuditAccount>,
+
+    /// Pyth SOL/USD price update (PriceUpdateV2 PDA, posted by anyone via the
+    /// Pyth Solana Receiver). Read on-chain — caller no longer supplies price.
+    pub pyth_price_update: Account<'info, PriceUpdateV2>,
 
     pub system_program: Program<'info, System>,
 }

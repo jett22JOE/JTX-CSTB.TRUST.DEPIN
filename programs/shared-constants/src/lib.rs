@@ -88,11 +88,34 @@ pub const AARON_AUDIT_FRESHNESS_FOR_NFT_SECONDS: i64 = 300;
 // (USDC/USD reference). Pinned to specific feed IDs; verify with
 // `pyth.network/price-feeds` if Pyth migrates feed IDs.
 
-/// Pyth SOL/USD price feed account on Solana mainnet.
+/// Pyth SOL/USD price feed account on Solana mainnet (legacy Pythnet account
+/// address). Kept for off-chain helper compatibility; on-chain code consumes
+/// `PYTH_SOL_USD_FEED_ID` instead via `pyth-solana-receiver-sdk`.
 pub const PYTH_SOL_USD_FEED: &str = "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG";
 
-/// Pyth USDC/USD price feed account on Solana mainnet.
+/// Pyth USDC/USD price feed account on Solana mainnet (legacy). Same caveat
+/// as above — on-chain code uses `PYTH_USDC_USD_FEED_ID`.
 pub const PYTH_USDC_USD_FEED: &str = "Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD";
+
+/// Pyth SOL/USD 32-byte feed ID (Hermes / pyth-solana-receiver-sdk format).
+/// Hex: 0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d
+/// Source: pyth.network/developers/price-feed-ids → Crypto.SOL/USD.
+pub const PYTH_SOL_USD_FEED_ID: [u8; 32] = [
+    0xef, 0x0d, 0x8b, 0x6f, 0xda, 0x2c, 0xeb, 0xa4,
+    0x1d, 0xa1, 0x5d, 0x40, 0x95, 0xd1, 0xda, 0x39,
+    0x2a, 0x0d, 0x2f, 0x8e, 0xd0, 0xc6, 0xc7, 0xbc,
+    0x0f, 0x4c, 0xfa, 0xc8, 0xc2, 0x80, 0xb5, 0x6d,
+];
+
+/// Pyth USDC/USD 32-byte feed ID (Hermes / pyth-solana-receiver-sdk format).
+/// Hex: 0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a
+/// Source: pyth.network/developers/price-feed-ids → Crypto.USDC/USD.
+pub const PYTH_USDC_USD_FEED_ID: [u8; 32] = [
+    0xea, 0xa0, 0x20, 0xc6, 0x1c, 0xc4, 0x79, 0x71,
+    0x28, 0x13, 0x46, 0x1c, 0xe1, 0x53, 0x89, 0x4a,
+    0x96, 0xa6, 0xc0, 0x0b, 0x21, 0xed, 0x0c, 0xfc,
+    0x27, 0x98, 0xd1, 0xf9, 0xa9, 0xe9, 0xc9, 0x4a,
+];
 
 /// Reject Pyth prices older than this many seconds. Tight enough to catch
 /// stale-oracle attacks, loose enough to survive minor RPC propagation lag.
