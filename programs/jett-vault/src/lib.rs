@@ -2579,11 +2579,16 @@ pub struct StakeForTier<'info> {
     pub stake_vault_authority: UncheckedAccount<'info>,
 
     /// Stake vault's JTX ATA. Initialized on first stake of any tier.
+    /// `associated_token::token_program` is required so Anchor derives the
+    /// ATA against Token-2022 (matching the JTX mint) instead of the default
+    /// legacy SPL Token derivation. Without this, post-init constraint checks
+    /// in Unstake / RestakeUpgrade error with `ConstraintAssociated`.
     #[account(
         init_if_needed,
         payer = user,
         associated_token::mint = jtx_mint,
         associated_token::authority = stake_vault_authority,
+        associated_token::token_program = token_program,
     )]
     pub stake_vault_ata: Box<InterfaceAccount<'info, TokenAccountInterface>>,
 
@@ -2645,6 +2650,7 @@ pub struct Unstake<'info> {
         mut,
         associated_token::mint = jtx_mint,
         associated_token::authority = stake_vault_authority,
+        associated_token::token_program = token_program,
     )]
     pub stake_vault_ata: InterfaceAccount<'info, TokenAccountInterface>,
 
@@ -2699,6 +2705,7 @@ pub struct RestakeUpgrade<'info> {
         mut,
         associated_token::mint = jtx_mint,
         associated_token::authority = stake_vault_authority,
+        associated_token::token_program = token_program,
     )]
     pub stake_vault_ata: InterfaceAccount<'info, TokenAccountInterface>,
 
