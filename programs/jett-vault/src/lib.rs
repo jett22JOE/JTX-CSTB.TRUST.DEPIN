@@ -83,6 +83,11 @@ pub const MULTIPLIER_REFERRED_BPS: u16 = 150;
 /// Maximum number of multisig signers
 pub const MAX_MULTISIG_SIGNERS: usize = 3;
 
+/// `pending_action` byte values for the multisig flow. set_paused uses 1/2
+/// inline (legacy magic numbers); the migrate path uses the named constant
+/// below so it's distinct and pinned by `approve_migrate_action`.
+pub const ACTION_MIGRATE_V2: u8 = 3;
+
 /// Required signatures for multisig operations
 pub const MULTISIG_THRESHOLD: u8 = 2;
 
@@ -1471,14 +1476,53 @@ pub mod jett_vault {
         Ok(())
     }
 
+    /// Record an approval for the migrate-v2-thresholds action. Caller must
+    /// be in `vault_config.multisig_signers`. Sets `pending_action =
+    /// ACTION_MIGRATE_V2` (3) and flips this signer's approval slot to
+    /// `true`. Does NOT trigger or reset — the trigger happens when
+    /// `migrate_v2_thresholds` itself is called with ≥ MULTISIG_THRESHOLD
+    /// approvals AND pending_action == ACTION_MIGRATE_V2.
+    ///
+    /// Why this exists separately from `set_paused`: `set_paused` resets
+    /// the approvals array on threshold (because the action triggers
+    /// immediately on the second signature), so reusing it can never
+    /// accumulate 2-of-3 approvals for a non-pause action. This instruction
+    /// is the dedicated approve-only path for migrate.
+    pub fn approve_migrate_action(ctx: Context<MultisigAction>) -> Result<()> {
+        let vault = &mut ctx.accounts.vault_config;
+        let signer = ctx.accounts.signer.key();
+
+        // Verify caller is in the multisig list and find their slot.
+        let signer_idx = vault
+            .multisig_signers
+            .iter()
+            .position(|s| *s == signer)
+            .ok_or(VaultError::UnauthorizedSigner)?;
+
+        // If the previous pending_action was something else (e.g. a stale
+        // pause approval), reset the array and start a fresh migrate batch.
+        if vault.pending_action != ACTION_MIGRATE_V2 {
+            vault.multisig_approvals = [false; MAX_MULTISIG_SIGNERS];
+            vault.pending_action = ACTION_MIGRATE_V2;
+        }
+        vault.multisig_approvals[signer_idx] = true;
+
+        let approval_count = vault.multisig_approvals.iter().filter(|&&a| a).count() as u8;
+        msg!(
+            "approve_migrate_action: {}/{} approvals (signer {})",
+            approval_count, MULTISIG_THRESHOLD, signer
+        );
+        Ok(())
+    }
+
     /// One-time multisig-gated batch reset of fake-tier `subscription_tier`
     /// values left over from the broken honor-system set_subscription. Pass
     /// target AgtAttestation accounts in `remaining_accounts`.
     ///
     /// Caller must be in vault_config.multisig_signers AND pending_action
-    /// must be a migrate-action with ≥ 2 approvals (existing multisig flow
-    /// is reused — no new state needed). Frontend prepares the batch and
-    /// founders co-sign through the standard multisig propose/approve cycle.
+    /// must equal ACTION_MIGRATE_V2 with ≥ MULTISIG_THRESHOLD approvals
+    /// (collected via `approve_migrate_action`). Frontend prepares the batch
+    /// and founders co-sign through the propose/approve cycle.
     pub fn migrate_v2_thresholds<'info>(
         ctx: Context<'_, '_, '_, 'info, MigrateV2Thresholds<'info>>,
     ) -> Result<()> {
@@ -1491,6 +1535,14 @@ pub mod jett_vault {
             .iter()
             .any(|p| *p == signer_key);
         require!(is_signer_in_multisig, VaultError::Unauthorized);
+
+        // The pending_action must be the migrate sentinel — guards against
+        // someone smuggling a stale pause-approval count into a migrate
+        // execution.
+        require!(
+            vault_config.pending_action == ACTION_MIGRATE_V2,
+            VaultError::MultisigNotApproved
+        );
 
         // 2-of-3 threshold check on currently-tracked approvals.
         let approval_count = vault_config

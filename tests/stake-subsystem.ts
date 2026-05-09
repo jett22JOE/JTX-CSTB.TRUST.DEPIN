@@ -519,14 +519,38 @@ describe("jett-vault v2.1 — stake subsystem", function () {
     }
   });
 
-  it.skip("(i-happy) migrate_v2_thresholds 2-of-3 happy path — REQUIRES approve_migrate_action ix", async () => {
-    // Current vault has no standalone approve-action instruction; the
-    // multisig flow piggybacks on set_paused which resets approvals once
-    // the threshold lands an action. To exercise this path either:
-    //   1. Add a `propose_migrate_action` ix that sets pending_action and
-    //      one approval slot without resetting.
-    //   2. Use bankrun to manipulate vault_config.multisig_approvals
-    //      directly, bypassing the on-chain approve flow.
-    // Tracked alongside handoff §7-Q5 (multisig signer set decision).
-  });
-});
+  it("(i-happy) migrate_v2_thresholds 2-of-3 happy path via approve_migrate_action × 2", async () => {
+    // Pre-condition: mojoUser staked in case (a), so their AGT has
+    // subscription_tier == 1 (set by stake_for_tier). After
+    // approve_migrate_action × 2 + migrate_v2_thresholds, the
+    // subscription_tier should be reset to 0 and mint_count_this_period to 0.
+    const beforeAgt = await program.account.agtAttestation.fetch(mojoUser.agtPda)
+    expect(beforeAgt.subscriptionTier).to.equal(1)
+
+    // Two approvals — founder (default provider wallet) + multisigSigner2.
+    await program.methods
+      .approveMigrateAction()
+      .accounts({ signer: founder.publicKey, vaultConfig: vaultConfigPDA })
+      .rpc()
+    await program.methods
+      .approveMigrateAction()
+      .accounts({ signer: multisigSigner2.publicKey, vaultConfig: vaultConfigPDA })
+      .signers([multisigSigner2])
+      .rpc()
+
+    // Anyone in the multisig can now invoke migrate_v2_thresholds with the
+    // target AGTs in remaining_accounts. The instruction iterates them
+    // borsh-deserializing in place; we pass mojoUser's AGT.
+    await program.methods
+      .migrateV2Thresholds()
+      .accounts({ signer: founder.publicKey, vaultConfig: vaultConfigPDA })
+      .remainingAccounts([
+        { pubkey: mojoUser.agtPda, isSigner: false, isWritable: true },
+      ])
+      .rpc()
+
+    const afterAgt = await program.account.agtAttestation.fetch(mojoUser.agtPda)
+    expect(afterAgt.subscriptionTier).to.equal(0)
+    expect(afterAgt.mintCountThisPeriod).to.equal(0)
+  })
+})
