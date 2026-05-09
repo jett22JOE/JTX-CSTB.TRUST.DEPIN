@@ -358,13 +358,13 @@ describe("jett-vault v2.1 — stake subsystem", function () {
   // (d) unstake — post-expiry success  [SKIPPED]
   // ========================================================================
 
-  it.skip("(d) unstake post-expiry success — REQUIRES BANKRUN warp_to", async () => {
-    // Tier durations are 1y (MOJO) / 2y (DOJO). Fast-forwarding clock on
-    // solana-test-validator is not supported. To validate this path either:
-    //   1. Switch this case to solana-bankrun (Banks.warp_to_slot).
-    //   2. Run as a long-lived devnet test with a one-off dummy tier
-    //      whose duration is reduced via a test-only feature flag.
-    // Tracked as B3.6.bankrun-followup.
+  it.skip("(d) unstake post-expiry success — covered separately in tests/stake-bankrun.ts", async () => {
+    // Tier durations are 1y (MOJO) / 2y (DOJO). solana-test-validator can't
+    // fast-forward clock, so this case is handled in a dedicated bankrun
+    // test file (tests/stake-bankrun.ts) which uses ProgramTestContext.setClock()
+    // to jump unix_timestamp past expires_at. Run via:
+    //   npx ts-mocha -p ./tsconfig.json -t 1000000 tests/stake-bankrun.ts
+    // 9 cases here on real-validator + 1 case there on bankrun = 10/10.
   });
 
   // ========================================================================
