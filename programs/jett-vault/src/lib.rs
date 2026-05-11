@@ -813,6 +813,99 @@ pub mod jett_vault {
     }
 
     // ========================================================================
+    // INSTRUCTION #7b: refresh_aaron_audit (B3.8)
+    // ========================================================================
+    //
+    // The original `aaron_audit` ix can only be called ONCE per AGT (line
+    // 750: `require!(aaron_audit_hash.is_none(), AuditAlreadyExists)`). The
+    // v2 `mint_donor_nft` requires the audit to be ≤ AARON_AUDIT_FRESHNESS_
+    // FOR_NFT_SECONDS old. Combined, that means there's a single 5-minute
+    // window from initial audit to mint — and if a user takes longer, the
+    // AGT is permanently un-mintable.
+    //
+    // `refresh_aaron_audit` lets the same caller (or a different AARON
+    // operator) re-run the audit and update `audited_at` + the score
+    // fields. It does NOT mutate the AGT's `aaron_audit_hash` because that
+    // is intentionally immutable — the hash binds the AGT to its FIRST
+    // audit forever. Repeated audits just refresh the timestamp + scores
+    // on the audit PDA itself.
+    //
+    // Permissioning: `aaron_operator` is an unrestricted `Signer<'info>`
+    // (same as `aaron_audit`). On devnet this is fine. Before mainnet we'll
+    // gate it via Squads-only allowlist (B3.9).
+    //
+    // ========================================================================
+
+    /// Refresh the timestamp + scores on an existing AARON audit. Required
+    /// to re-mint or to keep a long-lived AGT mint-eligible past the 5-min
+    /// freshness window. AGT.aaron_audit_hash stays untouched (immutable
+    /// binding to the FIRST audit).
+    pub fn refresh_aaron_audit(
+        ctx: Context<RefreshAaronAudit>,
+        audit_hash: [u8; 32],
+        risk_score: u16,
+        cog_score: u16,
+        env_score: u16,
+        emo_score: u16,
+        audit_notes_hash: [u8; 32],
+    ) -> Result<()> {
+        let clock = Clock::get()?;
+
+        // Validate before mutable borrows
+        require!(!ctx.accounts.vault_config.paused, VaultError::VaultPaused);
+        require!(ctx.accounts.agt_attestation.is_valid, VaultError::AttestationRevoked);
+
+        // Validate risk scores (0-10000 basis points), same as aaron_audit.
+        require!(risk_score <= 10000, VaultError::InvalidRiskScore);
+        require!(cog_score <= 10000, VaultError::InvalidRiskScore);
+        require!(env_score <= 10000, VaultError::InvalidRiskScore);
+        require!(emo_score <= 10000, VaultError::InvalidRiskScore);
+
+        let auditor_key = ctx.accounts.aaron_operator.key();
+        let agt_key = ctx.accounts.agt_attestation.key();
+
+        let audit = &mut ctx.accounts.aaron_audit_account;
+
+        // Defensive: the PDA seed binds the audit to its AGT, but double-check
+        // the stored field matches (catches PDA derivation drift).
+        require!(audit.agt_attestation == agt_key, VaultError::Unauthorized);
+
+        // Refresh fields. NOTE: we do NOT touch `agt.aaron_audit_hash`
+        // (intentionally immutable). The AGT's binding to its initial audit
+        // hash is the integrity anchor; only the audit PDA's per-audit
+        // metadata is rolled forward.
+        audit.audit_hash = audit_hash;
+        audit.risk_score = risk_score;
+        audit.cog_score = cog_score;
+        audit.env_score = env_score;
+        audit.emo_score = emo_score;
+        audit.audit_notes_hash = audit_notes_hash;
+        audit.audited_at = clock.unix_timestamp;
+        audit.auditor = auditor_key;
+
+        emit!(AaronEvent {
+            event_type: "aaron_audit_refresh".to_string(),
+            agt_owner: ctx.accounts.agt_attestation.owner,
+            auditor: auditor_key,
+            audit_hash,
+            risk_score,
+            cog_score,
+            env_score,
+            emo_score,
+            timestamp: clock.unix_timestamp,
+        });
+
+        msg!(
+            "AARON audit refreshed for AGT {} | risk={} | refreshed_at={}",
+            agt_key,
+            risk_score,
+            clock.unix_timestamp
+        );
+
+        Ok(())
+    }
+
+    // ========================================================================
     // INSTRUCTION #8: set_subscription
     // ========================================================================
     //
@@ -2398,6 +2491,34 @@ pub struct AaronAudit<'info> {
     pub vault_config: Account<'info, VaultConfig>,
 
     pub system_program: Program<'info, System>,
+}
+
+/// Accounts for `refresh_aaron_audit` (B3.8). Mirrors `AaronAudit` except
+/// the audit PDA is mutated rather than initialized, and there's no
+/// system_program (no rent transfer needed). The AGT is read-only too —
+/// the immutable `aaron_audit_hash` is intentionally not touched.
+#[derive(Accounts)]
+pub struct RefreshAaronAudit<'info> {
+    pub aaron_operator: Signer<'info>,
+
+    #[account(
+        seeds = [b"agt_attestation", agt_attestation.owner.as_ref()],
+        bump = agt_attestation.bump
+    )]
+    pub agt_attestation: Account<'info, AgtAttestation>,
+
+    #[account(
+        mut,
+        seeds = [b"aaron_audit", agt_attestation.key().as_ref()],
+        bump = aaron_audit_account.bump,
+    )]
+    pub aaron_audit_account: Account<'info, AaronAuditAccount>,
+
+    #[account(
+        seeds = [b"vault_config"],
+        bump = vault_config.bump
+    )]
+    pub vault_config: Account<'info, VaultConfig>,
 }
 
 #[derive(Accounts)]
