@@ -67,7 +67,14 @@ use shared_constants as shared;
 // prices anymore; mint_donor_nft requires a fresh price update at tx time.
 use pyth_solana_receiver_sdk::price_update::PriceUpdateV2;
 
+// Mainnet program ID (also serves as default for localnet).
+// Devnet uses a separate ID via `--features devnet` so Phantom's
+// Blowfish guard doesn't flag every devnet test tx as mainnet-valid.
+#[cfg(not(feature = "devnet"))]
 declare_id!("JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7");
+
+#[cfg(feature = "devnet")]
+declare_id!("CFXw63o3bH6mRHukLF495rKaU1bp5eqbnyVT3xNFitsz");
 
 // ============================================================================
 // CONSTANTS
