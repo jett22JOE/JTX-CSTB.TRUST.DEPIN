@@ -30,3 +30,6 @@ solana-program = "1.18"
 jtx-cstb-trust = { path = "../jtx-cstb-trust", features = ["cpi"] }
 shared-constants = { path = "../../crates/shared-constants" }
 pyth-solana-receiver-sdk = "0.6"
+# Metaplex Core for B3.10 — mint_donor_nft CPIs to CreateV2 so the
+# DonorReceipt PDA is paired with a real wallet-visible NFT asset.
+mpl-core = "0.10.0"

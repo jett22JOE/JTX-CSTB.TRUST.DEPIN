@@ -1338,6 +1338,52 @@ pub mod jett_vault {
             multiplier_bps as f64 / 100.0
         );
 
+        // ─── B3.10: mint the real wallet-visible Metaplex Core asset ─────
+        // The DonorReceipt PDA above is the source of truth for entitlement;
+        // the mpl-core asset is the user-facing object Phantom/Tensor/etc.
+        // render as a "collectible". URI points at a Next.js API route that
+        // reads the DonorReceipt PDA on demand and returns Metaplex-compatible
+        // JSON + SVG image, so the asset metadata is always in sync with the
+        // on-chain entitlement data without an off-chain pinning service.
+        //
+        // The `asset` keypair is generated client-side and signs the tx
+        // alongside the donor — it becomes the on-chain address of the NFT.
+        // Owner = donor. Update authority defaults to payer/signer (donor) for
+        // v1; can be migrated to vault PDA later via mpl-core's UpdateV2.
+        let metadata_uri = format!(
+            "https://www.astroknots.space/api/nft/{}",
+            receipt.key()
+        );
+        let asset_name = format!(
+            "JTX Genesis Receipt — {} SOL",
+            // Display lamports as fractional SOL with 3 decimals (e.g., "0.100")
+            // by integer-divmod so we don't pull in std::format float math.
+            {
+                let l = ctx.accounts.donor.amount_lamports;
+                let whole = l / 1_000_000_000;
+                let milli = (l % 1_000_000_000) / 1_000_000; // 3 decimal places
+                format!("{}.{:03}", whole, milli)
+            }
+        );
+
+        mpl_core::instructions::CreateV2CpiBuilder::new(
+            &ctx.accounts.mpl_core_program.to_account_info(),
+        )
+        .asset(&ctx.accounts.asset.to_account_info())
+        .collection(None)
+        .authority(None) // defaults to payer
+        .payer(&ctx.accounts.donor_signer.to_account_info())
+        .owner(Some(&ctx.accounts.donor_signer.to_account_info()))
+        .update_authority(None) // defaults to authority = payer
+        .system_program(&ctx.accounts.system_program.to_account_info())
+        .log_wrapper(None)
+        .data_state(mpl_core::types::DataState::AccountState)
+        .name(asset_name)
+        .uri(metadata_uri)
+        .plugins(vec![])
+        .external_plugin_adapters(vec![])
+        .invoke()?;
+
         Ok(())
     }
 
@@ -2705,6 +2751,18 @@ pub struct MintDonorNft<'info> {
     /// Pyth SOL/USD price update (PriceUpdateV2 PDA, posted by anyone via the
     /// Pyth Solana Receiver). Read on-chain — caller no longer supplies price.
     pub pyth_price_update: Box<Account<'info, PriceUpdateV2>>,
+
+    /// B3.10: Address that becomes the Metaplex Core asset (the wallet-visible
+    /// NFT). Client generates a fresh Keypair, signs the tx as both donor +
+    /// asset. mpl-core's CreateV2 initializes the account data; we don't init
+    /// it here, just mark it writable.
+    #[account(mut)]
+    pub asset: Signer<'info>,
+
+    /// CHECK: Metaplex Core program — verified by hardcoded program ID. Used
+    /// as the CPI target for CreateV2 inside the handler.
+    #[account(address = mpl_core::ID)]
+    pub mpl_core_program: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
 }
