@@ -754,6 +754,23 @@ pub mod jett_vault {
         // Validate before mutable borrows
         require!(!ctx.accounts.vault_config.paused, VaultError::VaultPaused);
         require!(ctx.accounts.agt_attestation.is_valid, VaultError::AttestationRevoked);
+
+        // B3.9 — aaron_operator must be in vault_config.multisig_signers.
+        // This is the on-chain enforcement of the JETT proof-of-personhood
+        // moat: pre-B3.9 the web client refusing to bootstrap on mainnet
+        // was the ONLY thing stopping a sophisticated user from calling
+        // aaron_audit directly via their own client. Now the program checks
+        // the signer against the multisig roster (founder + JOE agent +
+        // backup, or whatever Squads-controlled set vault_config holds).
+        // To rotate operators: use migrate_v2_thresholds path (2-of-3).
+        require!(
+            ctx.accounts
+                .vault_config
+                .multisig_signers
+                .contains(&ctx.accounts.aaron_operator.key()),
+            VaultError::UnauthorizedAaronOperator
+        );
+
         require!(
             ctx.accounts.agt_attestation.aaron_audit_hash.is_none(),
             VaultError::AuditAlreadyExists
@@ -861,6 +878,16 @@ pub mod jett_vault {
         // Validate before mutable borrows
         require!(!ctx.accounts.vault_config.paused, VaultError::VaultPaused);
         require!(ctx.accounts.agt_attestation.is_valid, VaultError::AttestationRevoked);
+
+        // B3.9 — same allowlist check as aaron_audit. Refresh ix must be
+        // gated identically so a non-operator can't bump audit freshness.
+        require!(
+            ctx.accounts
+                .vault_config
+                .multisig_signers
+                .contains(&ctx.accounts.aaron_operator.key()),
+            VaultError::UnauthorizedAaronOperator
+        );
 
         // Validate risk scores (0-10000 basis points), same as aaron_audit.
         require!(risk_score <= 10000, VaultError::InvalidRiskScore);
@@ -3070,6 +3097,10 @@ pub enum VaultError {
     // --- Stake Subsystem Errors (v2.1) ---
     #[msg("Caller is not authorized for this action")]
     Unauthorized,
+
+    // --- B3.9: AARON operator allowlist ---
+    #[msg("aaron_operator signer is not in vault_config.multisig_signers — JETT proof-of-personhood is on-chain enforced")]
+    UnauthorizedAaronOperator,
 
     #[msg("This instruction is deprecated — use stake_for_tier(tier) instead")]
     Deprecated,
