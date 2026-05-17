@@ -21,7 +21,7 @@ import * as path from "path";
 
 // ─── Config ───
 const PROGRAM_ID = new PublicKey("JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7");
-const RPC_URL = process.env.ANCHOR_PROVIDER_URL || "https://devnet.helius-rpc.com/?api-key=98ca6456-20a8-4518-8393-1b9ee6c2b7f3";
+const RPC_URL = process.env.ANCHOR_PROVIDER_URL || `https://devnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY || ""}`;
 const WALLET_PATH = process.env.ANCHOR_WALLET || `${process.env.HOME}/.config/solana/id.json`;
 
 // Known addresses
