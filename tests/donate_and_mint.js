@@ -10,7 +10,7 @@ const sighash = (name) => createHash('sha256').update('global:'+name).digest().s
 const encodeBN = (v) => { const b=Buffer.alloc(8); b.writeBigUInt64LE(v); return b; };
 
 const PROGRAM_ID = new PublicKey('JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7');
-const conn = new Connection('https://devnet.helius-rpc.com/?api-key=98ca6456-20a8-4518-8393-1b9ee6c2b7f3','confirmed');
+const conn = new Connection(process.env.ANCHOR_PROVIDER_URL || `https://devnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY || ''}`, 'confirmed');
 const wallet = Keypair.fromSecretKey(Uint8Array.from(JSON.parse(fs.readFileSync(process.env.HOME+'/.config/solana/id.json','utf-8'))));
 
 const [vaultPda] = PublicKey.findProgramAddressSync([Buffer.from('vault_config')],PROGRAM_ID);

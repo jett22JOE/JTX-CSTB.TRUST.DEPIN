@@ -37,3 +37,6 @@ keypair.json
 
 # TypeScript
 *.tsbuildinfo
+
+# Vanity keypair from earlier session — kept locally for possible future use
+jtxdeVKWE*.json
