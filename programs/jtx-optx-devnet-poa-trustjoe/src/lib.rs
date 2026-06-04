@@ -14,7 +14,7 @@ declare_id!("79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF");
 /// Fixes applied: Overflow protection, double-mint prevention, replay protection
 
 #[program]
-pub mod jtx_cstb_trust {
+pub mod jtx_optx_devnet_poa_trustjoe {
     use super::*;
 
     /// Initialize the protocol with token mints and configuration

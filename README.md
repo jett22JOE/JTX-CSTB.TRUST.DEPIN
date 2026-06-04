@@ -28,16 +28,16 @@ ________________
 
 | Program | ID | Status | Explorer |
 |---------|----|--------|----------|
-| `jtx_cstb_trust` (DePIN) | `85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF` | ✅ Live | [view](https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF) |
+| `jtx_optx_devnet_poa_trustjoe` (DePIN) | `85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF` | ✅ Live | [view](https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF) |
 | `jett_vault` | `JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7` | ✅ Live | [view](https://explorer.solana.com/address/JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7) |
 
 ### Devnet (testing — same code, separate keypair via `--features devnet`)
 
 | Program | ID | Status |
 |---------|----|--------|
-| `jtx_cstb_trust` | `79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF` | ✅ Deployed |
+| `jtx_optx_devnet_poa_trustjoe` | `79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF` | ✅ Deployed |
 | `jett_vault` | `FADKaMRVWdgsQXMhdBTLktdZqaEMA2VxmYcuhqhQ5SMC` (auth flipped 2026-05-02) | ✅ Deployed |
-| `depin_program` (legacy) | `91SqPNGRFrTgwSM3S7grZK8A6TCqn5STFGK4mAfqWMbQ` | 🟡 Deprecated — superseded by mainnet `jtx_cstb_trust` |
+| `depin_program` (legacy) | `91SqPNGRFrTgwSM3S7grZK8A6TCqn5STFGK4mAfqWMbQ` | 🟡 Deprecated — superseded by mainnet `jtx_optx_devnet_poa_trustjoe` |
 
 ---
 
@@ -191,7 +191,7 @@ require!(risk <= 7500)  // 75% threshold for safe minting
 
 ## Protocol Instructions
 
-### jtx_cstb_trust (DePIN Trust Protocol)
+### jtx_optx_devnet_poa_trustjoe (DePIN Trust Protocol)
 
 | Instruction | Description |
 |-------------|-------------|
@@ -217,7 +217,7 @@ require!(risk <= 7500)  // 75% threshold for safe minting
 | `donate_usdc_agent` | Agent USDC contributions (non-refundable) |
 | `create_agt_attestation` | AGT tensor + biometric proof hash on-chain |
 | `update_agt_weights` | Adaptive learning: `w(t+1) = proj[(1-a)*w(t) + a*g(t)]` |
-| `link_attestation` | CPI to jtx_cstb_trust for gaze verification |
+| `link_attestation` | CPI to jtx_optx_devnet_poa_trustjoe for gaze verification |
 | `aaron_audit` | AARON operator stamps immutable audit hash |
 | `set_subscription` | MOJO / DOJO / Space Cowboy tier |
 | `mint_optx` | Gated by subscription tier + AARON audit |
@@ -348,7 +348,7 @@ Shannon entropy of the AGT weight distribution. Higher entropy (more varied gaze
 yarn install
 
 # Mainnet build (default)
-anchor build -p jtx-cstb-trust
+anchor build -p jtx-optx-devnet-poa-trustjoe
 anchor build -p jett-vault
 
 # Devnet build (uses separate program ID — see Cargo.toml `devnet` feature)
@@ -403,7 +403,7 @@ if (risk.isSafe()) {  // <= 75% threshold
 
 ### Trust Client (`sdk/trust-client.ts`)
 
-Anchor program client for `jtx_cstb_trust`. Handles handshakes, attestations, and OPTX minting.
+Anchor program client for `jtx_optx_devnet_poa_trustjoe`. Handles handshakes, attestations, and OPTX minting.
 
 ### Vault Client (`sdk/vault-client.ts`)
 
@@ -441,7 +441,7 @@ Anchor program client for `jett_vault`. Handles vault deposits, AGT attestations
 
 ## Mainnet Checklist
 
-- [x] `jtx_cstb_trust` deployed to mainnet (`85sqs4u...XTF`)
+- [x] `jtx_optx_devnet_poa_trustjoe` deployed to mainnet (`85sqs4u...XTF`)
 - [x] `jett_vault` deployed to mainnet (`JTX5uXTi...EYA7`)
 - [x] $JTX mint live + mint authority revoked
 - [x] Meteora DLMM pool created + seeded (`54ecLhTa...sRHMz`)

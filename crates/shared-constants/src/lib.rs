@@ -2,7 +2,7 @@
 //!
 //! Single source of truth for tier thresholds, mint caps, $JTX peg price, and
 //! Pyth oracle feed addresses. Imported by `jett-vault`, the upcoming
-//! `jtx-buy-vault`, and `jtx-cstb-trust` so threshold/price values cannot
+//! `jtx-buy-vault`, and `jtx-optx-devnet-poa-trustjoe` so threshold/price values cannot
 //! desync across program upgrades.
 //!
 //! The frontend `astroknots.space/stake` is the canonical product source of

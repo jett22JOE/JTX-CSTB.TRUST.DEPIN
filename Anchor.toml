@@ -3,23 +3,23 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-jtx_cstb_trust = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
+jtx_optx_devnet_poa_trustjoe = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
 jett_vault = "JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7"
 
 # Devnet — separate program IDs so Phantom Blowfish can distinguish
 # devnet test transactions from mainnet ones. Build with:
 #   anchor build -p jett-vault -- --features devnet
 [programs.devnet]
-jtx_cstb_trust = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
+jtx_optx_devnet_poa_trustjoe = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
 jett_vault = "FADKaMRVWdgsQXMhdBTLktdZqaEMA2VxmYcuhqhQ5SMC"
 
 # Mainnet — JTX protocol live as of 2026-05-23
-#   jtx_cstb_trust = DePIN program (gaze attestation + OPTX mint)
+#   jtx_optx_devnet_poa_trustjoe = DePIN program (gaze attestation + OPTX mint)
 #   jett_vault     = Community vault (donations, refunds, AGT, AARON audit)
 # Treasury (9WssA...YD7) is tri-authority (JOE + Founder + Treasury)
 # Upgrade authority transfer to Squads multisig — see jettoptx-saas/SQUADS-RUNBOOK.md
 [programs.mainnet]
-jtx_cstb_trust = "85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF"
+jtx_optx_devnet_poa_trustjoe = "85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF"
 jett_vault = "JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7"
 
 [registry]

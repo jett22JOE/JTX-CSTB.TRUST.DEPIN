@@ -16,7 +16,7 @@ import {
 import { expect } from "chai";
 
 // Import the program IDL (generated after anchor build)
-import { JtxCstbTrust } from "../target/types/jtx_cstb_trust";
+import { JtxOptxDevnetPoaTrustjoe } from "../target/types/jtx_optx_devnet_poa_trustjoe";
 
 // ============================================================================
 // TEST CONSTANTS
@@ -108,7 +108,7 @@ describe("JTX-CSTB Trust Protocol", () => {
   const provider = AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.JtxCstbTrust as Program<JtxCstbTrust>;
+  const program = anchor.workspace.JtxOptxDevnetPoaTrustjoe as Program<JtxOptxDevnetPoaTrustjoe>;
   const programId = program.programId;
 
   // Test accounts

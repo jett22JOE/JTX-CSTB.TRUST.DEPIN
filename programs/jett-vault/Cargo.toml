@@ -27,7 +27,7 @@ devnet = []
 anchor-lang = { version = "0.30.1", features = ["init-if-needed"] }
 anchor-spl = { version = "0.30.1", features = ["token", "token_2022", "associated_token"] }
 solana-program = "1.18"
-jtx-cstb-trust = { path = "../jtx-cstb-trust", features = ["cpi"] }
+jtx-optx-devnet-poa-trustjoe = { path = "../jtx-optx-devnet-poa-trustjoe", features = ["cpi"] }
 shared-constants = { path = "../../crates/shared-constants" }
 pyth-solana-receiver-sdk = "0.6"
 # Metaplex Core for B3.10 — mint_donor_nft CPIs to CreateV2 so the

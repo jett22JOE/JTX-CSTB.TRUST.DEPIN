@@ -1,5 +1,5 @@
 [package]
-name = "jtx-cstb-trust"
+name = "jtx-optx-devnet-poa-trustjoe"
 version = "0.1.0"
 description = "JTX-CSTB Trust Protocol - Verified Human-Compute Attestations on Solana"
 edition = "2021"
@@ -8,7 +8,7 @@ repository = "https://github.com/jett22JOE/JTX-CSTB.TRUST.DEPIN"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "jtx_cstb_trust"
+name = "jtx_optx_devnet_poa_trustjoe"
 
 [features]
 no-entrypoint = []
