@@ -66,7 +66,7 @@ async function main() {
   console.log("=== JTX VAULT DEVNET TEST (raw RPC) ===");
   console.log("Wallet:", walletPubkey.toBase58());
   console.log("Program:", PROGRAM_ID.toBase58());
-  console.log("RPC:", RPC_URL.replace(/api-key=.*/, "api-key=***"));
+  console.log("RPC: [configured]");
   const bal = await connection.getBalance(walletPubkey);
   console.log("Balance:", bal / LAMPORTS_PER_SOL, "SOL");
 
