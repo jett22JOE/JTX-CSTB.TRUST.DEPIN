@@ -14,7 +14,7 @@ jtx_optx_devnet_poa_trustjoe = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
 jett_vault = "FADKaMRVWdgsQXMhdBTLktdZqaEMA2VxmYcuhqhQ5SMC"
 
 # Mainnet — JTX protocol live as of 2026-05-23
-#   jtx_cstb_trust = DePIN program (gaze attestation + OPTX mint)
+#   jtx_optx_devnet_poa_trustjoe = DePIN program (gaze attestation + OPTX mint)
 #   jett_vault     = Community vault (donations, refunds, AGT, AARON audit)
 # Treasury (9WssA...YD7) is tri-authority (JOE + Founder + Treasury)
 # Upgrade authority transfer to Squads multisig — see jettoptx-saas/SQUADS-RUNBOOK.md

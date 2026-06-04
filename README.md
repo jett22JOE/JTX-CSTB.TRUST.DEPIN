@@ -191,7 +191,7 @@ require!(risk <= 7500)  // 75% threshold for safe minting
 
 ## Protocol Instructions
 
-### jtx_optx_devnet_poa_trustjoe (Trust Protocol)
+### jtx_optx_devnet_poa_trustjoe (DePIN Trust Protocol)
 
 | Instruction | Description |
 |-------------|-------------|
