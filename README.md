@@ -24,7 +24,7 @@ ________________
 
 | Program | ID | Network | Status |
 |---------|----|---------|--------|
-| `jtx_cstb_trust` | `79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF` | Devnet | Deployed |
+| `jtx_optx_devnet_poa_trustjoe` | `79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF` | Devnet | Deployed |
 | `jett_vault` | TBD | Devnet | Ready to Deploy |
 | `depin_program` | `91SqPNGRFrTgwSM3S7grZK8A6TCqn5STFGK4mAfqWMbQ` | Devnet | Deployed |
 
@@ -160,7 +160,7 @@ require!(risk <= 7500)  // 75% threshold for safe minting
 
 ## Protocol Instructions
 
-### jtx_cstb_trust (Trust Protocol)
+### jtx_optx_devnet_poa_trustjoe (Trust Protocol)
 
 | Instruction | Description |
 |-------------|-------------|
@@ -186,7 +186,7 @@ require!(risk <= 7500)  // 75% threshold for safe minting
 | `donate_usdc_agent` | Agent USDC contributions (non-refundable) |
 | `create_agt_attestation` | AGT tensor + biometric proof hash on-chain |
 | `update_agt_weights` | Adaptive learning: `w(t+1) = proj[(1-a)*w(t) + a*g(t)]` |
-| `link_attestation` | CPI to jtx_cstb_trust for gaze verification |
+| `link_attestation` | CPI to jtx_optx_devnet_poa_trustjoe for gaze verification |
 | `aaron_audit` | AARON operator stamps immutable audit hash |
 | `set_subscription` | Tier 1 (Basic) or Tier 2 (Unlimited) |
 | `mint_optx` | Gated by subscription tier + AARON audit |
@@ -314,7 +314,7 @@ Shannon entropy of the AGT weight distribution. Higher entropy (more varied gaze
 
 ```bash
 yarn install
-anchor build -p jtx-cstb-trust
+anchor build -p jtx-optx-devnet-poa-trustjoe
 anchor build -p jett-vault
 ```
 
@@ -361,7 +361,7 @@ if (risk.isSafe()) {  // <= 75% threshold
 
 ### Trust Client (`sdk/trust-client.ts`)
 
-Anchor program client for `jtx_cstb_trust`. Handles handshakes, attestations, and OPTX minting.
+Anchor program client for `jtx_optx_devnet_poa_trustjoe`. Handles handshakes, attestations, and OPTX minting.
 
 ### Vault Client (`sdk/vault-client.ts`)
 
@@ -395,7 +395,7 @@ Anchor program client for `jett_vault`. Handles vault deposits, AGT attestations
 
 ## Mainnet Checklist
 
-- [x] jtx_cstb_trust deployed to devnet
+- [x] jtx_optx_devnet_poa_trustjoe deployed to devnet
 - [x] jett_vault program code complete + audited
 - [x] Security audit v2.0.0 (overflow, replay, double-mint)
 - [x] Program ID alignment (Anchor.toml + SDK + scripts)

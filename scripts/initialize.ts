@@ -25,7 +25,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 // Import IDL (generated after anchor build)
-// import { JtxCstbTrust } from "../target/types/jtx_cstb_trust";
+// import { JtxOptxDevnetPoaTrustjoe } from "../target/types/jtx_optx_devnet_poa_trustjoe";
 
 // ============================================================================
 // CONFIGURATION
@@ -155,7 +155,7 @@ async function main() {
 
   // Get program
   const program = new Program(
-    require("../target/idl/jtx_cstb_trust.json"),
+    require("../target/idl/jtx_optx_devnet_poa_trustjoe.json"),
     new PublicKey(programId),
     provider
   );

@@ -3,22 +3,22 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-jtx_cstb_trust = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
+jtx_optx_devnet_poa_trustjoe = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
 jett_vault = "JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7"
 
 [programs.devnet]
-jtx_cstb_trust = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
+jtx_optx_devnet_poa_trustjoe = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
 jett_vault = "JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7"
 
 [programs.mainnet]
-jtx_cstb_trust = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
+jtx_optx_devnet_poa_trustjoe = "85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF"
 jett_vault = "JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
