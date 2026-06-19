@@ -1,15 +1,14 @@
-# Astro Knots — Spatial Encryption on Solana
+# jettoptx-poa-depin — JTX Trust Protocol (Proof-of-Attention DePIN)
 
 _________________
 AARON PROTOCOL
 ________________
 
-[![Solana](https://img.shields.io/badge/Solana-Mainnet%20Live-14F195?style=flat&logo=solana)](https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF)
+[![Solana](https://img.shields.io/badge/Solana-Devnet%20Live-14F195?style=flat&logo=solana)](https://explorer.solana.com/address/79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF?cluster=devnet)
 [![Anchor](https://img.shields.io/badge/Anchor-0.30.1-blue)](https://anchor-lang.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-ASTRO.KNOTS%20Verified-brightgreen)](.)
 [![Aaron Router](https://img.shields.io/badge/Router-aaron--router-orange)](https://github.com/jettoptx/jettoptx-aaron-router)
-[![Trading](https://img.shields.io/badge/$JTX-Trading%202026--05--25-f97316)](https://app.meteora.ag/dlmm/54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz)
 
 ## Live
 
@@ -24,38 +23,25 @@ ________________
 
 ## Programs
 
-### Mainnet (live)
-
-| Program | ID | Status | Explorer |
-|---------|----|--------|----------|
-| `jtx_cstb_trust` (DePIN) | `85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF` | ✅ Live | [view](https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF) |
-| `jett_vault` | `JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7` | ✅ Live | [view](https://explorer.solana.com/address/JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7) |
-
-### Devnet (testing — same code, separate keypair via `--features devnet`)
+### Devnet (verified-live)
 
 | Program | ID | Status |
 |---------|----|--------|
-| `jtx_cstb_trust` | `79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF` | ✅ Deployed |
-| `jett_vault` | `FADKaMRVWdgsQXMhdBTLktdZqaEMA2VxmYcuhqhQ5SMC` (auth flipped 2026-05-02) | ✅ Deployed |
-| `depin_program` (legacy) | `91SqPNGRFrTgwSM3S7grZK8A6TCqn5STFGK4mAfqWMbQ` | 🟡 Deprecated — superseded by mainnet `jtx_cstb_trust` |
+| JTX Trust Protocol | `79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF` | ✅ Live (devnet) |
+| `jett_vault` | `JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7` | ✅ Deployed |
+
+> Mainnet program `85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF` is **pending verification** and is not yet advertised as Live.
 
 ---
 
-## Mainnet Trading
+## $JTX Token
 
 | Detail | Value |
 |--------|-------|
-| **$JTX mint** | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` (Token-2022) |
+| **$JTX mint (v1, live on-chain)** | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` (Token-2022) |
 | **Mint authority** | ✅ **Revoked** — fixed supply forever |
-| **Meteora DLMM pool** | `54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz` |
-| **Trading starts** | 2026-05-25 15:10 UTC |
-| **Initial price** | 0.093524 SOL per JTX |
-| **Seeded liquidity** | 6,000 JTX |
-| **Bin step** | 25 bps |
-| **LP lock** | 90 days via Meteora DLMM |
-| **Treasury (tri-authority)** | `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` |
-| **Tempo agent wallet (EVM)** | `0xf35f4021ceb48672c6f804cd57973b0cbb2b6c3d` |
-| **Buy / Track** | [jettoptics.ai/buy](https://jettoptics.ai/buy) |
+| **In-app token** | v2 (Astro Knots) — used in-app; v1 remains the live on-chain token |
+| **Track** | [jettoptics.ai](https://jettoptics.ai) |
 
 ---
 
@@ -66,7 +52,7 @@ graph TD
     User[User / MOJO Mobile] -->|Gaze Pattern| JETT[JETT Auth]
     JETT -->|Biometric Signature| OPTX_BRIDGE["OPT𝕏 Bridge"]
     OPTX_BRIDGE -->|Opaque Proof| AARON[AARON Router]
-    AARON <-->|x402 Payments & Attestations| OPTXChain["OPTX Blockchain<br/>Solana Mainnet"]
+    AARON <-->|x402 Payments & Attestations| OPTXChain["OPTX Blockchain<br/>Solana"]
     AARON -->|Domain Management| KNOT[KNOT Terminal]
     AARON -->|Audit Trail| STDB[SpacetimeDB]
     JOE[JOE Agent] -->|Grok 4.20 + Chat| AARON
@@ -77,7 +63,7 @@ graph TD
 ```
 ┌─────────────┐     ┌──────────────┐     ┌────────────┐     ┌──────────────┐
 │ MOJO / Web  │────>│ JETT Auth    │────>│ AARON      │────>│ Solana       │
-│ (Gaze Input)│     │ (AGT Tensor) │     │ (Edge Node)│     │ (Mainnet)    │
+│ (Gaze Input)│     │ (AGT Tensor) │     │ (Edge Node)│     │ (devnet)     │
 └─────────────┘     └──────────────┘     └────────────┘     └──────────────┘
       │                    │                    │                    │
       │  1. Iris capture   │                    │                    │
@@ -110,7 +96,7 @@ graph TD
 
 ## Architecture Overview
 
-The JTX-CSTB Trust Protocol uses AGT (Agentive Gaze Tensor) attestations with biometric proof hashing. The protocol combines gaze-based Proof-of-Attention with computational proofs to create verified human-compute attestations on-chain. `$JTX` holders can mint `$OPTX` through verified identity attestations.
+The JTX Trust Protocol uses AGT (Agentive Gaze Tensor) attestations with biometric proof hashing. The protocol combines gaze-based Proof-of-Attention with computational proofs to create verified human-compute attestations on-chain. `$JTX` holders can mint `$OPTX` through verified identity attestations.
 
 ### Key Concepts
 
@@ -149,8 +135,8 @@ User Holds $JTX ------> Initiate Handshake
 | Token | Mint | Network | Purpose |
 |-------|------|---------|---------|
 | `$JTX` | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` | ✅ Mainnet | Governance + staking — mint revoked |
-| `$OPTX` | `4r9WxVWBNMphYfSyGBuMFYRLsLEnzUNquJPnpFessXRH` | Devnet | Gaze attestation rewards (Token-2022) — mainnet TBD |
-| `$CSTB` | `4waAimBGeubfVBp4MX9vRh7iTWxoR2RYYqiuChqCH7rX` | Devnet | DePIN validator token — mainnet TBD |
+| `$OPTX` | `DSyauRAZwUd2BrTk3P8k2yUxxvcx5X4BBg3Gh3VbeRG3` | Devnet | Gaze attestation rewards (Token-2022) — mainnet TBD |
+| `$CSTB` | `4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL` | Devnet | DePIN validator token — mainnet TBD |
 
 ### $OPTX Minting Formula
 
@@ -191,7 +177,7 @@ require!(risk <= 7500)  // 75% threshold for safe minting
 
 ## Protocol Instructions
 
-### jtx_cstb_trust (DePIN Trust Protocol)
+### JTX Trust Protocol (DePIN Trust)
 
 | Instruction | Description |
 |-------------|-------------|
@@ -217,7 +203,7 @@ require!(risk <= 7500)  // 75% threshold for safe minting
 | `donate_usdc_agent` | Agent USDC contributions (non-refundable) |
 | `create_agt_attestation` | AGT tensor + biometric proof hash on-chain |
 | `update_agt_weights` | Adaptive learning: `w(t+1) = proj[(1-a)*w(t) + a*g(t)]` |
-| `link_attestation` | CPI to jtx_cstb_trust for gaze verification |
+| `link_attestation` | CPI to the JTX Trust Protocol for gaze verification |
 | `aaron_audit` | AARON operator stamps immutable audit hash |
 | `set_subscription` | MOJO / DOJO / Space Cowboy tier |
 | `mint_optx` | Gated by subscription tier + AARON audit |
@@ -403,7 +389,7 @@ if (risk.isSafe()) {  // <= 75% threshold
 
 ### Trust Client (`sdk/trust-client.ts`)
 
-Anchor program client for `jtx_cstb_trust`. Handles handshakes, attestations, and OPTX minting.
+Anchor program client for the JTX Trust Protocol (`jtx-cstb-trust` crate). Handles handshakes, attestations, and OPTX minting.
 
 ### Vault Client (`sdk/vault-client.ts`)
 
@@ -435,29 +421,24 @@ Anchor program client for `jett_vault`. Handles vault deposits, AGT attestations
 - **v2.0.0** (2026-01-30) — HEDGEHOG MCP security audit (Grok 4.1 Fast Reasoning)
 - **v2.1.0** (2026-02-24) — Program ID alignment, SDK update, pre-mainnet review
 - **v2.1.1** (2026-05-17) — RPC creds moved to env, smoke-test scripts (B3.10)
-- **v2.1.2** (2026-05-23) — Mainnet deployment + treasury hardcoded tri-authority
+- **v2.1.2** (2026-05-23) — Pre-mainnet deployment review
 
 ---
 
-## Mainnet Checklist
+## Launch Checklist
 
-- [x] `jtx_cstb_trust` deployed to mainnet (`85sqs4u...XTF`)
-- [x] `jett_vault` deployed to mainnet (`JTX5uXTi...EYA7`)
+- [x] JTX Trust Protocol deployed + initialized on devnet (`79nQsec...NiugF`)
+- [x] `jett_vault` deployed
 - [x] $JTX mint live + mint authority revoked
-- [x] Meteora DLMM pool created + seeded (`54ecLhTa...sRHMz`)
-- [x] LP locked 90 days
-- [x] Treasury wallet (`9WssA...YD7`) hardcoded tri-authority (JOE + Founder + Treasury)
-- [x] Tempo agent wallet (EVM) configured for x402 settlement
 - [x] Security audit v2.0.0 (overflow, replay, double-mint)
 - [x] Security audit v2.1.1 (RPC creds + B3 smoke tests)
-- [x] Security audit v2.1.2 (mainnet review)
 - [x] Program ID alignment (Anchor.toml + SDK + scripts)
 - [x] TypeScript SDK (jett-sdk, trust-client, vault-client)
 - [x] AARON Router live ([jettoptx-aaron-router](https://github.com/jettoptx/jettoptx-aaron-router))
 - [x] JOE Agent with Grok 4.20 vision
 - [x] mint_donor_nft via mpl-core CreateV2 (B3.10)
-- [ ] Trading goes live (2026-05-25 15:10 UTC)
-- [ ] Upgrade authority transferred to Squads multisig (see [SQUADS-RUNBOOK](https://github.com/jettoptx/jettoptx-saas/blob/main/SQUADS-RUNBOOK.md))
+- [ ] Mainnet program deployment verified
+- [ ] Upgrade authority transferred to Squads multisig
 - [ ] First gaze attestation on mainnet
 - [ ] First OPTX mint on mainnet
 - [ ] Genesis Jett Auth NFT (soulbound via Metaplex)
@@ -474,10 +455,7 @@ Anchor program client for `jett_vault`. Handles vault deposits, AGT attestations
 - **DOJO**: [jettoptx.chat](https://jettoptx.chat) (formerly /dojo)
 - **$JTX on Solscan**: [solscan.io](https://solscan.io/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj)
 - **$JTX on Birdeye**: [birdeye.so](https://birdeye.so/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj?chain=solana)
-- **$JTX on DexScreener**: [dexscreener.com](https://dexscreener.com/solana/54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz)
-- **Buy $JTX**: [jettoptics.ai/buy](https://jettoptics.ai/buy)
-- **Meteora Pool**: [app.meteora.ag](https://app.meteora.ag/dlmm/54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz)
-- **DePIN Program**: [explorer.solana.com](https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF)
+- **JTX Trust Protocol (devnet)**: [explorer.solana.com](https://explorer.solana.com/address/79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF?cluster=devnet)
 - **Vault Program**: [explorer.solana.com](https://explorer.solana.com/address/JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7)
 
 ---
