@@ -13,12 +13,13 @@ ________________
 
 ## Live
 
-- [jettoptics.ai](https://jettoptics.ai) — Main Site + DOJO + **Buy $JTX**
-- [astroknots.space](https://astroknots.space) — Community Vault
+- [jettoptics.ai](https://jettoptics.ai) — Main Site + **Buy $JTX**
+- [jettoptx.chat](https://jettoptx.chat) — DOJO / JettChat (gated product)
+- [astroknots.space](https://astroknots.space) — Waitlist + Community Vault marketing
 - [astro.knots.sol](https://astroknots.space) — SNS V2 Domain
 - [jett.vision](https://jett.vision) — JOEvision deeplink
 - [astroknots.space/aaron](https://astroknots.space/aaron) — AARON Router API
-- [docs.jettoptx.dev](https://docs.jettoptx.dev) — Developer Docs
+- [jettoptx.dev/docs](https://jettoptx.dev/docs) — Developer Docs
 
 ---
 
@@ -45,7 +46,8 @@ ________________
 
 | Detail | Value |
 |--------|-------|
-| **$JTX mint** | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` (Token-2022) |
+| **$JTX v2 mint** | `JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe` (Token-2022, 9 dec) — **canonical** |
+| **$JTX v1 (legacy)** | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` — revoked authority |
 | **Mint authority** | ✅ **Revoked** — fixed supply forever |
 | **Meteora DLMM pool** | `54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz` |
 | **Trading starts** | 2026-05-25 15:10 UTC |
@@ -148,9 +150,10 @@ User Holds $JTX ------> Initiate Handshake
 
 | Token | Mint | Network | Purpose |
 |-------|------|---------|---------|
-| `$JTX` | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` | ✅ Mainnet | Governance + staking — mint revoked |
-| `$OPTX` | `4r9WxVWBNMphYfSyGBuMFYRLsLEnzUNquJPnpFessXRH` | Devnet | Gaze attestation rewards (Token-2022) — mainnet TBD |
-| `$CSTB` | `4waAimBGeubfVBp4MX9vRh7iTWxoR2RYYqiuChqCH7rX` | Devnet | DePIN validator token — mainnet TBD |
+| `$JTX v2` | `JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe` | ✅ Mainnet | **Canonical** governance + access (Token-2022, 9 dec) |
+| `$JTX v1` | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` | Mainnet | Legacy — mint authority revoked |
+| `$OPTX` | `DSyauRAZwUd2BrTk3P8k2yUxxvcx5X4BBg3Gh3VbeRG3` | Devnet | Gaze attestation rewards (Token-2022, 6 dec) — mints live |
+| `$CSTB` | `4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL` | Devnet | DePIN validator token |
 
 ### $OPTX Minting Formula
 
@@ -472,8 +475,9 @@ Anchor program client for `jett_vault`. Handles vault deposits, AGT attestations
 - **AARON Router**: [github.com/jettoptx/jettoptx-aaron-router](https://github.com/jettoptx/jettoptx-aaron-router)
 - **JettChat App**: [jettoptx.chat](https://jettoptx.chat)
 - **DOJO**: [jettoptx.chat](https://jettoptx.chat) (formerly /dojo)
-- **$JTX on Solscan**: [solscan.io](https://solscan.io/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj)
-- **$JTX on Birdeye**: [birdeye.so](https://birdeye.so/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj?chain=solana)
+- **$JTX v2 on Solscan**: [solscan.io](https://solscan.io/token/JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe)
+- **$JTX v2 on Birdeye**: [birdeye.so](https://birdeye.so/token/JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe?chain=solana)
+- **$JTX v1 (legacy) on Solscan**: [solscan.io](https://solscan.io/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj)
 - **$JTX on DexScreener**: [dexscreener.com](https://dexscreener.com/solana/54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz)
 - **Buy $JTX**: [jettoptics.ai/buy](https://jettoptics.ai/buy)
 - **Meteora Pool**: [app.meteora.ag](https://app.meteora.ag/dlmm/54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz)
