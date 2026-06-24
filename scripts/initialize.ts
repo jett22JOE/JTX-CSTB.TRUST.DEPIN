@@ -33,7 +33,7 @@ import * as path from "path";
 
 // Token mints
 const JTX_MINT_MAINNET = new PublicKey(
-  "9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
+  "JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe"
 );
 const CSTB_MINT_DEVNET = new PublicKey(
   "4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL"

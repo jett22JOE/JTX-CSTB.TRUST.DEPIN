@@ -40,7 +40,7 @@ url = "https://api.mainnet-beta.solana.com"
 
 # Clone $JTX token for testing
 [[test.validator.clone]]
-address = "9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj"
+address = "JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe"
 
 # Token program
 [[test.validator.clone]]

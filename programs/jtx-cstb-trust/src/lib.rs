@@ -518,7 +518,7 @@ pub mod jtx_cstb_trust {
 pub struct ProtocolConfig {
     /// Authority who can update config
     pub authority: Pubkey,
-    /// $JTX token mint address (mainnet: 9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj)
+    /// $JTX token mint address (mainnet v2: JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe)
     pub jtx_mint: Pubkey,
     /// $CSTB token mint address (devnet: 4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL)
     pub cstb_mint: Pubkey,

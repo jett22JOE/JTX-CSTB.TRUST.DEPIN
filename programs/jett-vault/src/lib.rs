@@ -292,7 +292,7 @@ pub mod jett_vault {
     /// The JTX is held in a vault-owned associated token account, not the
     /// founder wallet. This is real on-chain escrow.
     ///
-    /// JTX Mint: 9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj (Token-2022, 9 decimals)
+    /// JTX Mint: JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe (Token-2022 v2, 9 decimals)
     pub fn donate_jtx(
         ctx: Context<DonateJtx>,
         amount: u64,

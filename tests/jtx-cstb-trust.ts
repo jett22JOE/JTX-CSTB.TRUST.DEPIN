@@ -22,8 +22,8 @@ import { JtxCstbTrust } from "../target/types/jtx_cstb_trust";
 // TEST CONSTANTS
 // ============================================================================
 
-// $JTX mainnet mint (cloned in test validator)
-const JTX_MINT = new PublicKey("9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj");
+// $JTX v2 mainnet mint (cloned in test validator)
+const JTX_MINT = new PublicKey("JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe");
 
 // $CSTB devnet mint
 const CSTB_MINT = new PublicKey("4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL");
