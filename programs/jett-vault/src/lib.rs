@@ -1,5 +1,5 @@
 // ============================================================================
-// ASTRO KNOTS VAULT — jett_vault Anchor Program v2.1
+// ASTRO KNOTS VAULT ΓÇö jett_vault Anchor Program v2.1
 // ============================================================================
 //
 // On-chain realization of the DePIN biometric authentication protocol:
@@ -17,25 +17,25 @@
 //   - Full event emission for webhook integrations
 //
 // AGT Math:
-//   w(t+1) = Π_Δ[(1-α)·w(t) + α·g(t)]
-//   Dual-space key: k(t) = ⟨w(t), s⟩
-//   Bilinear extension: B(w, g) = Σ w_i · g_i · φ_i
-//   Simplex constraint: Σ w_i = 1, w_i ≥ 0
+//   w(t+1) = ╬á_╬ö[(1-╬▒)┬╖w(t) + ╬▒┬╖g(t)]
+//   Dual-space key: k(t) = Γƒ¿w(t), sΓƒ⌐
+//   Bilinear extension: B(w, g) = ╬ú w_i ┬╖ g_i ┬╖ ╧å_i
+//   Simplex constraint: ╬ú w_i = 1, w_i ΓëÑ 0
 //
 // Biometric Proofs:
 //   Off-chain biometric engine computes a cryptographic digest from gaze topology.
-//   On-chain stores only the opaque 32-byte proof hash — no internals exposed.
-//   Attestation hash = sha256(tensor_hash ‖ biometric_proof_hash)
+//   On-chain stores only the opaque 32-byte proof hash ΓÇö no internals exposed.
+//   Attestation hash = sha256(tensor_hash ΓÇû biometric_proof_hash)
 //
 // AARON Protocol:
 //   Asynchronous Audit RAG Optical Node
-//   Three-axis risk control: COG (cognitive) × ENV (environmental) × EMO (emotional)
+//   Three-axis risk control: COG (cognitive) ├ù ENV (environmental) ├ù EMO (emotional)
 //   On-chain: aaron_audit instruction creates timestamped audit PDA
 //   Off-chain: AARON network node processes gaze audits via AI inference
 //
 // SECURITY CHECKLIST:
 // [x] All arithmetic uses checked_add / checked_sub / checked_mul
-// [x] No private keys on edge nodes — signing deferred to seeker device
+// [x] No private keys on edge nodes ΓÇö signing deferred to seeker device
 // [x] Emergency pause via 2-of-3 multisig (no single signer)
 // [x] Agent payments non-refundable by design
 // [x] Reentrancy guards via Anchor account checks + state flags
@@ -44,7 +44,7 @@
 // [x] VaultEvent emitted on every state change (webhook-ready)
 // [x] Overflow protection on all counters and amounts
 // [x] AGT tensor hash validated (sha256, 32 bytes)
-// [x] Biometric proof hash is opaque — no internals on-chain
+// [x] Biometric proof hash is opaque ΓÇö no internals on-chain
 // [x] Subscription tier verified before OPTX mint
 // [x] AARON audit hash is immutable once written
 //
@@ -62,7 +62,7 @@ use anchor_spl::token_interface::{
 // pricing values used by both jett-vault and jtx-buy-vault. Imported as
 // `shared` for terseness; original Cargo dep is `shared-constants`.
 use shared_constants as shared;
-// Pyth Solana Receiver SDK — on-chain SOL/USD oracle reads via wormhole-relayed
+// Pyth Solana Receiver SDK ΓÇö on-chain SOL/USD oracle reads via wormhole-relayed
 // price updates posted to PriceUpdateV2 PDAs. We never trust caller-supplied
 // prices anymore; mint_donor_nft requires a fresh price update at tx time.
 use pyth_solana_receiver_sdk::price_update::PriceUpdateV2;
@@ -74,7 +74,7 @@ use pyth_solana_receiver_sdk::price_update::PriceUpdateV2;
 declare_id!("JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7");
 
 #[cfg(feature = "devnet")]
-declare_id!("CFXw63o3bH6mRHukLF495rKaU1bp5eqbnyVT3xNFitsz");
+declare_id!("ExjFkkX3Zogyb5uBeaff8FdKZbjjVHcCHgcaQiP3qQDS");
 
 // ============================================================================
 // CONSTANTS
@@ -101,16 +101,16 @@ pub const MULTISIG_THRESHOLD: u8 = 2;
 /// AGT simplex dimension (COG, ENV, EMO = 3-simplex)
 pub const AGT_DIMENSION: usize = 3;
 
-/// AGT learning rate α in basis points (default 10% = 1000 bps)
+/// AGT learning rate ╬▒ in basis points (default 10% = 1000 bps)
 pub const AGT_ALPHA_BPS: u16 = 1000;
 
 /// AGT tensor weight precision (fixed-point, 6 decimals)
 pub const AGT_PRECISION: u64 = 1_000_000;
 
-/// Subscription tier: Basic — 222 OPTX mints per month
+/// Subscription tier: Basic ΓÇö 222 OPTX mints per month
 pub const BASIC_MINT_CAP: u32 = 222;
 
-/// Subscription tier: Unlimited — no cap (u32::MAX)
+/// Subscription tier: Unlimited ΓÇö no cap (u32::MAX)
 pub const UNLIMITED_MINT_CAP: u32 = u32::MAX;
 
 /// Minimum $JTX required for Basic subscription (in smallest unit)
@@ -135,7 +135,7 @@ pub const MIN_NFT_THRESHOLD_USDC: u64 = 8_000_000;
 pub const NFT_COLLECTION_NAME: &str = "ASTRO KNOTS Vault Receipt";
 pub const NFT_SYMBOL: &str = "AKVR";
 
-/// SOL/USD price feed — updated by JOE autonomous agent
+/// SOL/USD price feed ΓÇö updated by JOE autonomous agent
 /// Default estimate: $133/SOL (used when oracle unavailable)
 pub const DEFAULT_SOL_PRICE_USDC: u64 = 133_000_000; // $133.00 in 6-decimal USDC
 
@@ -292,7 +292,7 @@ pub mod jett_vault {
     /// The JTX is held in a vault-owned associated token account, not the
     /// founder wallet. This is real on-chain escrow.
     ///
-    /// JTX Mint: JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe (Token-2022 v2, 9 decimals)
+    /// JTX Mint: 9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj (Token-2022, 9 decimals)
     pub fn donate_jtx(
         ctx: Context<DonateJtx>,
         amount: u64,
@@ -494,18 +494,18 @@ pub mod jett_vault {
     // INSTRUCTION #5: create_agt_attestation
     // ========================================================================
     //
-    // AGT Math: w(t+1) = Π_Δ[(1-α)·w(t) + α·g(t)]
+    // AGT Math: w(t+1) = ╬á_╬ö[(1-╬▒)┬╖w(t) + ╬▒┬╖g(t)]
     //
-    // The gaze tensor g(t) = [COG, ENV, EMO] is a 3-vector on the simplex Δ².
+    // The gaze tensor g(t) = [COG, ENV, EMO] is a 3-vector on the simplex ╬ö┬▓.
     // The weight vector w(t) is updated via exponential moving average
-    // then projected back onto the simplex via Π_Δ (clamp + normalize).
+    // then projected back onto the simplex via ╬á_╬ö (clamp + normalize).
     //
-    // Dual-space key: k(t) = ⟨w(t), s⟩ where s is the session seed vector.
+    // Dual-space key: k(t) = Γƒ¿w(t), sΓƒ⌐ where s is the session seed vector.
     // This inner product maps the simplex point to a scalar key used
     // for OPTX mint authorization.
     //
-    // Bilinear extension: B(w, g) = Σ w_i · g_i · φ_i
-    // where φ_i are basis functionals (here stored as difficulty factors).
+    // Bilinear extension: B(w, g) = ╬ú w_i ┬╖ g_i ┬╖ ╧å_i
+    // where ╧å_i are basis functionals (here stored as difficulty factors).
     // This measures the "quality" of a gaze session for attestation scoring.
     //
     // Biometric proof hash is computed off-chain by the biometric engine
@@ -517,10 +517,10 @@ pub mod jett_vault {
     /// This is the core on-chain primitive for DePIN gaze authentication.
     ///
     /// # Arguments
-    /// * `gaze_tensor` - Raw gaze vector [COG, ENV, EMO] in fixed-point (×1e6)
+    /// * `gaze_tensor` - Raw gaze vector [COG, ENV, EMO] in fixed-point (├ù1e6)
     /// * `session_seed` - Session-specific seed vector for dual-space key derivation
     /// * `biometric_proof_hash` - Opaque 32-byte hash from off-chain biometric engine
-    /// * `difficulty_factors` - Basis functionals φ_i for bilinear extension
+    /// * `difficulty_factors` - Basis functionals ╧å_i for bilinear extension
     /// * `device_type` - Device identifier (0=desktop, 1=mobile/MOJO, 2=edge)
     pub fn create_agt_attestation(
         ctx: Context<CreateAgtAttestation>,
@@ -536,7 +536,7 @@ pub mod jett_vault {
 
         require!(!vault.paused, VaultError::VaultPaused);
 
-        // Validate gaze tensor is on the simplex (sum ≈ AGT_PRECISION)
+        // Validate gaze tensor is on the simplex (sum Γëê AGT_PRECISION)
         let tensor_sum: u64 = gaze_tensor
             .iter()
             .try_fold(0u64, |acc, &x| acc.checked_add(x))
@@ -550,24 +550,24 @@ pub mod jett_vault {
             VaultError::InvalidSimplexProjection
         );
 
-        // Compute AGT weight update: w(t+1) = Π_Δ[(1-α)·w(t) + α·g(t)]
+        // Compute AGT weight update: w(t+1) = ╬á_╬ö[(1-╬▒)┬╖w(t) + ╬▒┬╖g(t)]
         // For initial attestation, w(0) = g(0) (first observation = weight)
         let agt_weights = simplex_project(&gaze_tensor)?;
 
-        // Compute dual-space key: k(t) = ⟨w(t), s⟩
+        // Compute dual-space key: k(t) = Γƒ¿w(t), sΓƒ⌐
         let dual_key = inner_product(&agt_weights, &session_seed)?;
 
-        // Compute bilinear extension: B(w, g) = Σ w_i · g_i · φ_i
+        // Compute bilinear extension: B(w, g) = ╬ú w_i ┬╖ g_i ┬╖ ╧å_i
         let bilinear_score = bilinear_extension(
             &agt_weights,
             &gaze_tensor,
             &difficulty_factors,
         )?;
 
-        // Compute tensor hash: sha256(w[0] ‖ w[1] ‖ w[2] ‖ dual_key)
+        // Compute tensor hash: sha256(w[0] ΓÇû w[1] ΓÇû w[2] ΓÇû dual_key)
         let tensor_hash = compute_tensor_hash(&agt_weights, dual_key);
 
-        // Attestation hash: sha256(tensor_hash ‖ biometric_proof_hash)
+        // Attestation hash: sha256(tensor_hash ΓÇû biometric_proof_hash)
         let attestation_hash = hashv(&[&tensor_hash, &biometric_proof_hash]).to_bytes();
 
         // Populate AGT attestation PDA
@@ -622,7 +622,7 @@ pub mod jett_vault {
     // ========================================================================
     //
     // Implements the AGT update rule:
-    //   w(t+1) = Π_Δ[(1-α)·w(t) + α·g(t)]
+    //   w(t+1) = ╬á_╬ö[(1-╬▒)┬╖w(t) + ╬▒┬╖g(t)]
     //
     // This is the core adaptive learning loop. Each new gaze observation
     // shifts the weight vector toward the new data point, then projects
@@ -660,13 +660,13 @@ pub mod jett_vault {
             VaultError::InvalidSimplexProjection
         );
 
-        // AGT update: w(t+1) = Π_Δ[(1-α)·w(t) + α·g(t)]
+        // AGT update: w(t+1) = ╬á_╬ö[(1-╬▒)┬╖w(t) + ╬▒┬╖g(t)]
         let alpha = alpha_bps as u64;
         let one_minus_alpha = 10000u64.saturating_sub(alpha as u64);
 
         let mut new_weights = [0u64; AGT_DIMENSION];
         for i in 0..AGT_DIMENSION {
-            // w_i' = (1-α)·w_i + α·g_i   (all in bps precision)
+            // w_i' = (1-╬▒)┬╖w_i + ╬▒┬╖g_i   (all in bps precision)
             let scaled_old = agt.agt_weights[i]
                 .checked_mul(one_minus_alpha)
                 .ok_or(VaultError::ArithmeticOverflow)?
@@ -689,7 +689,7 @@ pub mod jett_vault {
         // Recompute tensor hash
         let tensor_hash = compute_tensor_hash(&projected, dual_key);
 
-        // Recompute attestation hash (biometric proof hash stays same — it's invariant)
+        // Recompute attestation hash (biometric proof hash stays same ΓÇö it's invariant)
         let attestation_hash = hashv(&[&tensor_hash, &agt.biometric_proof_hash]).to_bytes();
 
         // Apply updates
@@ -711,7 +711,7 @@ pub mod jett_vault {
         });
 
         msg!(
-            "AGT weights updated for {} | α={}bps | new dual_key={}",
+            "AGT weights updated for {} | ╬▒={}bps | new dual_key={}",
             agt.owner,
             alpha_bps,
             dual_key
@@ -725,14 +725,14 @@ pub mod jett_vault {
     // ========================================================================
     //
     // AARON = Asynchronous Audit RAG Optical Node
-    // Three-axis risk: COG × ENV × EMO tensors
+    // Three-axis risk: COG ├ù ENV ├ù EMO tensors
     //
     // The AARON operator node processes gaze data through
     // AI inference for risk classification, then writes the audit result
     // on-chain as an immutable timestamp + hash.
     //
     // The audit_hash is computed off-chain by AARON and is:
-    //   sha256(agt_attestation_hash ‖ risk_score ‖ cog ‖ env ‖ emo ‖ timestamp)
+    //   sha256(agt_attestation_hash ΓÇû risk_score ΓÇû cog ΓÇû env ΓÇû emo ΓÇû timestamp)
     //
     // Once written, the aaron_audit_hash on the AGT attestation is IMMUTABLE.
     //
@@ -755,7 +755,7 @@ pub mod jett_vault {
         require!(!ctx.accounts.vault_config.paused, VaultError::VaultPaused);
         require!(ctx.accounts.agt_attestation.is_valid, VaultError::AttestationRevoked);
 
-        // B3.9 — aaron_operator must be in vault_config.multisig_signers.
+        // B3.9 ΓÇö aaron_operator must be in vault_config.multisig_signers.
         // This is the on-chain enforcement of the JETT proof-of-personhood
         // moat: pre-B3.9 the web client refusing to bootstrap on mainnet
         // was the ONLY thing stopping a sophisticated user from calling
@@ -842,15 +842,15 @@ pub mod jett_vault {
     //
     // The original `aaron_audit` ix can only be called ONCE per AGT (line
     // 750: `require!(aaron_audit_hash.is_none(), AuditAlreadyExists)`). The
-    // v2 `mint_donor_nft` requires the audit to be ≤ AARON_AUDIT_FRESHNESS_
+    // v2 `mint_donor_nft` requires the audit to be Γëñ AARON_AUDIT_FRESHNESS_
     // FOR_NFT_SECONDS old. Combined, that means there's a single 5-minute
-    // window from initial audit to mint — and if a user takes longer, the
+    // window from initial audit to mint ΓÇö and if a user takes longer, the
     // AGT is permanently un-mintable.
     //
     // `refresh_aaron_audit` lets the same caller (or a different AARON
     // operator) re-run the audit and update `audited_at` + the score
     // fields. It does NOT mutate the AGT's `aaron_audit_hash` because that
-    // is intentionally immutable — the hash binds the AGT to its FIRST
+    // is intentionally immutable ΓÇö the hash binds the AGT to its FIRST
     // audit forever. Repeated audits just refresh the timestamp + scores
     // on the audit PDA itself.
     //
@@ -879,7 +879,7 @@ pub mod jett_vault {
         require!(!ctx.accounts.vault_config.paused, VaultError::VaultPaused);
         require!(ctx.accounts.agt_attestation.is_valid, VaultError::AttestationRevoked);
 
-        // B3.9 — same allowlist check as aaron_audit. Refresh ix must be
+        // B3.9 ΓÇö same allowlist check as aaron_audit. Refresh ix must be
         // gated identically so a non-operator can't bump audit freshness.
         require!(
             ctx.accounts
@@ -944,8 +944,8 @@ pub mod jett_vault {
     // ========================================================================
     //
     // Subscription tiers:
-    //   Basic:     222 OPTX mints/month — requires 1+ $JTX held
-    //   Unlimited: No mint cap           — requires 100+ $JTX held
+    //   Basic:     222 OPTX mints/month ΓÇö requires 1+ $JTX held
+    //   Unlimited: No mint cap           ΓÇö requires 100+ $JTX held
     //
     // The subscription is verified against the user's $JTX token balance.
     // In production, this uses CPI to check the token account. For devnet,
@@ -953,10 +953,10 @@ pub mod jett_vault {
     //
     // ========================================================================
 
-    /// DEPRECATED in v2.1 — use `stake_for_tier(tier)` instead.
+    /// DEPRECATED in v2.1 ΓÇö use `stake_for_tier(tier)` instead.
     ///
     /// The original `set_subscription(tier, jtx_amount)` accepted a
-    /// caller-supplied `jtx_amount` and only checked it against thresholds —
+    /// caller-supplied `jtx_amount` and only checked it against thresholds ΓÇö
     /// no actual JTX transfer, no balance verification. Callers could claim
     /// any tier without holding any JTX (honor-system bug, mainnet-live).
     ///
@@ -965,13 +965,13 @@ pub mod jett_vault {
     /// state. Migrate to `stake_for_tier` which performs an on-chain
     /// `transfer_checked` of the required JTX amount into the stake vault PDA.
     ///
-    /// Both args are intentionally ignored — `_tier`, `_jtx_amount`.
+    /// Both args are intentionally ignored ΓÇö `_tier`, `_jtx_amount`.
     pub fn set_subscription(
         _ctx: Context<SetSubscription>,
         _tier: u8,
         _jtx_amount: u64,
     ) -> Result<()> {
-        msg!("set_subscription is DEPRECATED in v2.1 — call stake_for_tier(tier) instead. \
+        msg!("set_subscription is DEPRECATED in v2.1 ΓÇö call stake_for_tier(tier) instead. \
               Required JTX is now transferred on-chain to the stake vault PDA; the old \
               caller-supplied jtx_amount path is closed.");
         err!(VaultError::Deprecated)
@@ -985,7 +985,7 @@ pub mod jett_vault {
     //   1. Valid AGT attestation (is_valid = true)
     //   2. Subscription tier (Basic=222/mo, Unlimited=no cap)
     //   3. AARON audit exists (aaron_audit_hash.is_some())
-    //   4. Risk score below threshold (≤ 7500 bps)
+    //   4. Risk score below threshold (Γëñ 7500 bps)
     //
     // Mint amount is scaled by the bilinear score and OPTX multiplier.
     //
@@ -1065,7 +1065,7 @@ pub mod jett_vault {
             agt.owner,
             agt.subscription_tier,
             agt.mint_count_this_period,
-            if mint_cap == u32::MAX { "∞".to_string() } else { mint_cap.to_string() }
+            if mint_cap == u32::MAX { "Γê₧".to_string() } else { mint_cap.to_string() }
         );
 
         Ok(())
@@ -1225,7 +1225,7 @@ pub mod jett_vault {
             !ctx.accounts.vault_config.paused,
             VaultError::VaultPaused
         );
-        msg!("check_and_launch: stub — implement in Phase 2");
+        msg!("check_and_launch: stub ΓÇö implement in Phase 2");
         Ok(())
     }
 
@@ -1238,7 +1238,7 @@ pub mod jett_vault {
             !ctx.accounts.vault_config.paused,
             VaultError::VaultPaused
         );
-        msg!("trigger_refunds: stub — implement in Phase 2");
+        msg!("trigger_refunds: stub ΓÇö implement in Phase 2");
         Ok(())
     }
 
@@ -1254,8 +1254,8 @@ pub mod jett_vault {
     /// For SOL donations: value = amount_lamports * sol_price_usdc / 1e9
     /// For USDC (agent): value = usdc_amount directly
     ///
-    /// Example: User donates $80 SOL → NFT = 10 JTX claim (80/8)
-    /// Example: Agent pays $16 USDC → NFT = 2 JTX claim (16/8)
+    /// Example: User donates $80 SOL ΓåÆ NFT = 10 JTX claim (80/8)
+    /// Example: Agent pays $16 USDC ΓåÆ NFT = 2 JTX claim (16/8)
     ///
     /// NFT metadata stored in DonorReceipt PDA. Actual Metaplex NFT mint
     /// can be triggered separately via CPI or off-chain with the receipt as proof.
@@ -1269,7 +1269,7 @@ pub mod jett_vault {
         require!(!ctx.accounts.donor.refund_claimed, VaultError::RefundAlreadyClaimed);
         require!(ctx.accounts.donor.amount_lamports > 0, VaultError::ZeroAmount);
 
-        // AARON audit freshness — the donor must have run aaron_audit within
+        // AARON audit freshness ΓÇö the donor must have run aaron_audit within
         // AARON_AUDIT_FRESHNESS_FOR_NFT_SECONDS (5 min) before minting. The
         // Accounts struct already pins aaron_audit_account to the donor's
         // agt_attestation; here we only enforce the time bound.
@@ -1281,9 +1281,9 @@ pub mod jett_vault {
             VaultError::AuditTooStale
         );
 
-        // SOL/USD price from Pyth (≤ MAX_PYTH_AGE_SECONDS old). The receiver
+        // SOL/USD price from Pyth (Γëñ MAX_PYTH_AGE_SECONDS old). The receiver
         // SDK validates freshness internally and returns Err on stale/missing
-        // updates → mapped to VaultError::PythPriceStale. No caller-supplied
+        // updates ΓåÆ mapped to VaultError::PythPriceStale. No caller-supplied
         // price path remains: a stale or absent Pyth update fails the tx.
         let pyth_price = ctx
             .accounts
@@ -1357,7 +1357,7 @@ pub mod jett_vault {
         });
 
         msg!(
-            "NFT Receipt: {} → {} JTX (${} donation at ${}/JTX, {}x multiplier)",
+            "NFT Receipt: {} ΓåÆ {} JTX (${} donation at ${}/JTX, {}x multiplier)",
             donor_key,
             jtx_with_multiplier / JTX_DECIMALS,
             donation_value_usdc / 1_000_000,
@@ -1365,7 +1365,7 @@ pub mod jett_vault {
             multiplier_bps as f64 / 100.0
         );
 
-        // ─── B3.10: mint the real wallet-visible Metaplex Core asset ─────
+        // ΓöÇΓöÇΓöÇ B3.10: mint the real wallet-visible Metaplex Core asset ΓöÇΓöÇΓöÇΓöÇΓöÇ
         // The DonorReceipt PDA above is the source of truth for entitlement;
         // the mpl-core asset is the user-facing object Phantom/Tensor/etc.
         // render as a "collectible". URI points at a Next.js API route that
@@ -1374,7 +1374,7 @@ pub mod jett_vault {
         // on-chain entitlement data without an off-chain pinning service.
         //
         // The `asset` keypair is generated client-side and signs the tx
-        // alongside the donor — it becomes the on-chain address of the NFT.
+        // alongside the donor ΓÇö it becomes the on-chain address of the NFT.
         // Owner = donor. Update authority defaults to payer/signer (donor) for
         // v1; can be migrated to vault PDA later via mpl-core's UpdateV2.
         let metadata_uri = format!(
@@ -1382,7 +1382,7 @@ pub mod jett_vault {
             receipt.key()
         );
         let asset_name = format!(
-            "JTX Genesis Receipt — {} SOL",
+            "JTX Genesis Receipt ΓÇö {} SOL",
             // Display lamports as fractional SOL with 3 decimals (e.g., "0.100")
             // by integer-divmod so we don't pull in std::format float math.
             {
@@ -1423,7 +1423,7 @@ pub mod jett_vault {
             !ctx.accounts.vault_config.paused,
             VaultError::VaultPaused
         );
-        msg!("update_phase: stub — implement in Phase 2");
+        msg!("update_phase: stub ΓÇö implement in Phase 2");
         Ok(())
     }
 
@@ -1432,7 +1432,7 @@ pub mod jett_vault {
     // ========================================================================
 
     pub fn close_vault(_ctx: Context<MultisigAction>) -> Result<()> {
-        msg!("close_vault: stub — implement in Phase 2");
+        msg!("close_vault: stub ΓÇö implement in Phase 2");
         Ok(())
     }
 
@@ -1441,22 +1441,22 @@ pub mod jett_vault {
     // ========================================================================
 
     pub fn migrate_from_legacy(_ctx: Context<FounderOnly>) -> Result<()> {
-        msg!("migrate_from_legacy: stub — implement when ready");
+        msg!("migrate_from_legacy: stub ΓÇö implement when ready");
         Ok(())
     }
 
     // ========================================================================
-    // STAKE SUBSYSTEM (v2.1) — replaces broken honor-system set_subscription.
+    // STAKE SUBSYSTEM (v2.1) ΓÇö replaces broken honor-system set_subscription.
     //
-    // Tier × duration × OPTX cap (from `astroknots.space/stake`):
+    // Tier ├ù duration ├ù OPTX cap (from `astroknots.space/stake`):
     //   MOJO         12 JTX    1 year      12 OPTX/mo
     //   DOJO        444 JTX    2 years    444 OPTX/mo
     //   SPACE COWBOY 1,111 JTX  Lifetime   Unlimited (PERMANENTLY LOCKED)
     //
-    // SPACE COWBOY locks JTX with no withdrawal path — by design — for max
+    // SPACE COWBOY locks JTX with no withdrawal path ΓÇö by design ΓÇö for max
     // peg defense + alignment signal. UI MUST disclose this before signing.
     //
-    // Helius webhook → AARON Router /stakes/webhooks/helius → SpacetimeDB
+    // Helius webhook ΓåÆ AARON Router /stakes/webhooks/helius ΓåÆ SpacetimeDB
     // jtx_onchain_action mirroring; events emitted below.
     // ========================================================================
 
@@ -1480,7 +1480,7 @@ pub mod jett_vault {
             _ => staked_at.saturating_add(duration),
         };
 
-        // Transfer JTX → stake_vault_ata (Token-2022 transfer_checked).
+        // Transfer JTX ΓåÆ stake_vault_ata (Token-2022 transfer_checked).
         let cpi_accounts = TransferChecked {
             from: ctx.accounts.user_jtx_ata.to_account_info(),
             mint: ctx.accounts.jtx_mint.to_account_info(),
@@ -1586,7 +1586,7 @@ pub mod jett_vault {
 
     /// Upgrade an active stake to a higher tier by transferring the delta.
     /// Resets `expires_at` to `now + new_tier_duration` (or 0 for SPACE COWBOY).
-    /// Downgrades NOT supported — call unstake-then-stake_for_tier.
+    /// Downgrades NOT supported ΓÇö call unstake-then-stake_for_tier.
     pub fn restake_upgrade(ctx: Context<RestakeUpgrade>, new_tier: u8) -> Result<()> {
         require!(new_tier >= 1 && new_tier <= 3, VaultError::InvalidSubscriptionTier);
         require!(!ctx.accounts.vault_config.paused, VaultError::VaultPaused);
@@ -1644,7 +1644,7 @@ pub mod jett_vault {
             upgraded_at: now,
         });
 
-        msg!("restake_upgrade: owner={} {} → {} delta={}",
+        msg!("restake_upgrade: owner={} {} ΓåÆ {} delta={}",
             ctx.accounts.user.key(), old_tier, new_tier, delta);
         Ok(())
     }
@@ -1652,8 +1652,8 @@ pub mod jett_vault {
     /// Record an approval for the migrate-v2-thresholds action. Caller must
     /// be in `vault_config.multisig_signers`. Sets `pending_action =
     /// ACTION_MIGRATE_V2` (3) and flips this signer's approval slot to
-    /// `true`. Does NOT trigger or reset — the trigger happens when
-    /// `migrate_v2_thresholds` itself is called with ≥ MULTISIG_THRESHOLD
+    /// `true`. Does NOT trigger or reset ΓÇö the trigger happens when
+    /// `migrate_v2_thresholds` itself is called with ΓëÑ MULTISIG_THRESHOLD
     /// approvals AND pending_action == ACTION_MIGRATE_V2.
     ///
     /// Why this exists separately from `set_paused`: `set_paused` resets
@@ -1693,7 +1693,7 @@ pub mod jett_vault {
     /// target AgtAttestation accounts in `remaining_accounts`.
     ///
     /// Caller must be in vault_config.multisig_signers AND pending_action
-    /// must equal ACTION_MIGRATE_V2 with ≥ MULTISIG_THRESHOLD approvals
+    /// must equal ACTION_MIGRATE_V2 with ΓëÑ MULTISIG_THRESHOLD approvals
     /// (collected via `approve_migrate_action`). Frontend prepares the batch
     /// and founders co-sign through the propose/approve cycle.
     pub fn migrate_v2_thresholds<'info>(
@@ -1709,7 +1709,7 @@ pub mod jett_vault {
             .any(|p| *p == signer_key);
         require!(is_signer_in_multisig, VaultError::Unauthorized);
 
-        // The pending_action must be the migrate sentinel — guards against
+        // The pending_action must be the migrate sentinel ΓÇö guards against
         // someone smuggling a stale pause-approval count into a migrate
         // execution.
         require!(
@@ -1742,7 +1742,7 @@ pub mod jett_vault {
             let mut buf: &[u8] = &data;
             let mut agt: AgtAttestation = match AgtAttestation::try_deserialize(&mut buf) {
                 Ok(a) => a,
-                Err(_) => continue, // Not an AgtAttestation — skip silently.
+                Err(_) => continue, // Not an AgtAttestation ΓÇö skip silently.
             };
 
             // Wipe the fake tier and counters.
@@ -1774,9 +1774,9 @@ pub mod jett_vault {
     }
 }
 
-// ───────────────────────────────────────────────────────────────────────────
-// Stake helpers (private — referenced only by stake_for_tier / restake_upgrade)
-// ───────────────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Stake helpers (private ΓÇö referenced only by stake_for_tier / restake_upgrade)
+// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 /// Look up (required_jtx, duration_seconds) for a given tier byte.
 fn tier_params(tier: u8) -> Result<(u64, i64)> {
@@ -1788,18 +1788,18 @@ fn tier_params(tier: u8) -> Result<(u64, i64)> {
     }
 }
 
-// ───────────────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Pyth helpers
-// ───────────────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
-/// Convert a Pyth `Price { price, exponent }` (USD value = price · 10^exponent)
+/// Convert a Pyth `Price { price, exponent }` (USD value = price ┬╖ 10^exponent)
 /// to a u64 in 6-decimal USDC. Negative or zero prices are rejected as
-/// `PythPriceStale` — there is no legitimate path where SOL/USD ≤ 0. Overflow
+/// `PythPriceStale` ΓÇö there is no legitimate path where SOL/USD Γëñ 0. Overflow
 /// or down-shift to zero in either direction maps to `ArithmeticOverflow`.
 fn scale_pyth_to_usdc6(price: i64, exponent: i32) -> Result<u64> {
     require!(price > 0, VaultError::PythPriceStale);
     let price_u128 = price as u128;
-    // USDC has 6 decimals → target exponent is -6. Shift = exponent - (-6).
+    // USDC has 6 decimals ΓåÆ target exponent is -6. Shift = exponent - (-6).
     let shift: i32 = exponent + 6;
     let scaled: u128 = if shift >= 0 {
         let factor = 10u128
@@ -1828,14 +1828,14 @@ fn scale_pyth_to_usdc6(price: i64, exponent: i32) -> Result<u64> {
 // floating point on Solana's BPF runtime.
 //
 
-/// Project a vector onto the probability simplex Δ^(n-1).
-/// Ensures: Σ w_i = AGT_PRECISION and w_i ≥ 0 for all i.
+/// Project a vector onto the probability simplex ╬ö^(n-1).
+/// Ensures: ╬ú w_i = AGT_PRECISION and w_i ΓëÑ 0 for all i.
 ///
 /// Algorithm: clamp negatives to 0, then normalize to sum = AGT_PRECISION.
 fn simplex_project(v: &[u64; AGT_DIMENSION]) -> Result<[u64; AGT_DIMENSION]> {
     let mut result = *v;
 
-    // All values are u64 so already ≥ 0. Just normalize to sum = AGT_PRECISION.
+    // All values are u64 so already ΓëÑ 0. Just normalize to sum = AGT_PRECISION.
     let sum: u64 = result
         .iter()
         .try_fold(0u64, |acc, &x| acc.checked_add(x))
@@ -1866,8 +1866,8 @@ fn simplex_project(v: &[u64; AGT_DIMENSION]) -> Result<[u64; AGT_DIMENSION]> {
     Ok(result)
 }
 
-/// Inner product ⟨a, b⟩ = Σ a_i · b_i (divided by AGT_PRECISION for scaling).
-/// Used for dual-space key derivation: k(t) = ⟨w(t), s⟩
+/// Inner product Γƒ¿a, bΓƒ⌐ = ╬ú a_i ┬╖ b_i (divided by AGT_PRECISION for scaling).
+/// Used for dual-space key derivation: k(t) = Γƒ¿w(t), sΓƒ⌐
 fn inner_product(
     a: &[u64; AGT_DIMENSION],
     b: &[u64; AGT_DIMENSION],
@@ -1886,9 +1886,9 @@ fn inner_product(
     Ok((sum / AGT_PRECISION as u128) as u64)
 }
 
-/// Bilinear extension B(w, g) = Σ w_i · g_i · φ_i
+/// Bilinear extension B(w, g) = ╬ú w_i ┬╖ g_i ┬╖ ╧å_i
 /// Measures gaze quality for attestation scoring.
-/// Returns score in fixed-point (×1e6).
+/// Returns score in fixed-point (├ù1e6).
 fn bilinear_extension(
     weights: &[u64; AGT_DIMENSION],
     gaze: &[u64; AGT_DIMENSION],
@@ -1910,7 +1910,7 @@ fn bilinear_extension(
     Ok((sum / precision_sq) as u64)
 }
 
-/// Compute tensor hash: sha256(w[0] ‖ w[1] ‖ w[2] ‖ dual_key)
+/// Compute tensor hash: sha256(w[0] ΓÇû w[1] ΓÇû w[2] ΓÇû dual_key)
 fn compute_tensor_hash(weights: &[u64; AGT_DIMENSION], dual_key: u64) -> [u8; 32] {
     let mut data = Vec::with_capacity(AGT_DIMENSION * 8 + 8);
     for w in weights {
@@ -2017,7 +2017,7 @@ pub struct MigrateV2Event {
 // ACCOUNT STRUCTURES
 // ============================================================================
 
-/// VaultConfig — Global singleton storing vault + protocol state.
+/// VaultConfig ΓÇö Global singleton storing vault + protocol state.
 /// Seeds: ["vault_config"]
 #[account]
 pub struct VaultConfig {
@@ -2065,7 +2065,7 @@ impl VaultConfig {
         1;      // bump
 }
 
-/// Donor — Per-donor account tracking donations and attestation status.
+/// Donor ΓÇö Per-donor account tracking donations and attestation status.
 /// Seeds: ["donor", donor_pubkey]
 #[account]
 pub struct Donor {
@@ -2093,7 +2093,7 @@ impl Donor {
         1;      // bump
 }
 
-/// DonorReceipt — NFT receipt PDA representing JTX claim from donation.
+/// DonorReceipt ΓÇö NFT receipt PDA representing JTX claim from donation.
 /// Seeds: ["receipt", vault_pubkey, donor_pubkey]
 ///
 /// This is the on-chain proof that a donor (human or agent) is entitled
@@ -2146,7 +2146,7 @@ impl DonorReceipt {
         1;      // bump
 }
 
-/// JtxVaultStats — Separate PDA tracking JTX donations.
+/// JtxVaultStats ΓÇö Separate PDA tracking JTX donations.
 /// Seeds: ["jtx_stats", vault_config_pubkey]
 /// Kept separate from VaultConfig to avoid resizing the already-deployed account.
 #[account]
@@ -2169,7 +2169,7 @@ impl JtxVaultStats {
         1;      // bump
 }
 
-/// AgentAcquisition — Links agent USDC payment to acquired human.
+/// AgentAcquisition ΓÇö Links agent USDC payment to acquired human.
 /// Seeds: ["agent_acq", agent_pubkey, user_pubkey]
 #[account]
 pub struct AgentAcquisition {
@@ -2184,7 +2184,7 @@ impl AgentAcquisition {
     pub const LEN: usize = 8 + 32 + 32 + 8 + 8 + 1;
 }
 
-/// AgentLedger — Aggregate stats for an agent.
+/// AgentLedger ΓÇö Aggregate stats for an agent.
 /// Seeds: ["agent_ledger", agent_pubkey]
 #[account]
 pub struct AgentLedger {
@@ -2199,7 +2199,7 @@ impl AgentLedger {
     pub const LEN: usize = 8 + 32 + 8 + 4 + 8 + 1;
 }
 
-/// AGT Attestation — Core DePIN biometric authentication primitive.
+/// AGT Attestation ΓÇö Core DePIN biometric authentication primitive.
 /// Stores adaptive gaze tensor weights, biometric proof hash, and AARON audit.
 /// Seeds: ["agt_attestation", owner_pubkey]
 #[account]
@@ -2208,15 +2208,15 @@ pub struct AgtAttestation {
     pub owner: Pubkey,
 
     // --- AGT Tensor Fields ---
-    /// Current simplex-projected weight vector [COG, ENV, EMO] (×1e6)
+    /// Current simplex-projected weight vector [COG, ENV, EMO] (├ù1e6)
     pub agt_weights: [u64; AGT_DIMENSION],
-    /// Most recent raw gaze tensor [COG, ENV, EMO] (×1e6)
+    /// Most recent raw gaze tensor [COG, ENV, EMO] (├ù1e6)
     pub gaze_tensor: [u64; AGT_DIMENSION],
-    /// Dual-space key k(t) = ⟨w(t), s⟩
+    /// Dual-space key k(t) = Γƒ¿w(t), sΓƒ⌐
     pub dual_key: u64,
-    /// Bilinear extension score B(w, g) = Σ w_i · g_i · φ_i
+    /// Bilinear extension score B(w, g) = ╬ú w_i ┬╖ g_i ┬╖ ╧å_i
     pub bilinear_score: u64,
-    /// sha256(weights ‖ dual_key)
+    /// sha256(weights ΓÇû dual_key)
     pub tensor_hash: [u8; 32],
 
     // --- Biometric Proof (opaque, computed off-chain) ---
@@ -2224,7 +2224,7 @@ pub struct AgtAttestation {
     pub biometric_proof_hash: [u8; 32],
 
     // --- Combined ---
-    /// sha256(tensor_hash ‖ biometric_proof_hash) — the full attestation hash
+    /// sha256(tensor_hash ΓÇû biometric_proof_hash) ΓÇö the full attestation hash
     pub attestation_hash: [u8; 32],
 
     // --- Metadata ---
@@ -2273,7 +2273,7 @@ impl AgtAttestation {
         1;                      // bump
 }
 
-/// AaronAuditAccount — AARON operator's audit result for an AGT attestation.
+/// AaronAuditAccount ΓÇö AARON operator's audit result for an AGT attestation.
 /// Seeds: ["aaron_audit", agt_attestation_pubkey]
 #[account]
 pub struct AaronAuditAccount {
@@ -2281,7 +2281,7 @@ pub struct AaronAuditAccount {
     pub agt_attestation: Pubkey,
     /// AARON operator who performed the audit
     pub auditor: Pubkey,
-    /// Audit hash: sha256(attestation_hash ‖ risk ‖ cog ‖ env ‖ emo ‖ ts)
+    /// Audit hash: sha256(attestation_hash ΓÇû risk ΓÇû cog ΓÇû env ΓÇû emo ΓÇû ts)
     pub audit_hash: [u8; 32],
     /// Overall risk score (0-10000 bps)
     pub risk_score: u16,
@@ -2312,23 +2312,23 @@ impl AaronAuditAccount {
         1;      // bump
 }
 
-/// StakePosition — per-wallet locked-JTX position unlocking a subscription tier.
+/// StakePosition ΓÇö per-wallet locked-JTX position unlocking a subscription tier.
 ///
 /// One position per wallet (PDA seeds: ["stake", owner]). To upgrade tier the
 /// holder calls `restake_upgrade` (transfers the delta + extends expiry). To
 /// withdraw at end-of-term the holder calls `unstake` after `expires_at`.
 ///
-/// SPACE COWBOY (tier 3) has `expires_at = 0` and CANNOT be unstaked — the
+/// SPACE COWBOY (tier 3) has `expires_at = 0` and CANNOT be unstaked ΓÇö the
 /// 1,111 JTX is permanently locked in `stake_vault_ata`. This is the maximum
 /// alignment commitment and there is intentionally no escape hatch.
 #[account]
 pub struct StakePosition {
-    pub owner: Pubkey,       // 32 — user wallet
-    pub tier: u8,            // 1  — 1=MOJO, 2=DOJO, 3=SPACE COWBOY
-    pub amount: u64,         // 8  — locked JTX in 9-decimal raw
-    pub staked_at: i64,      // 8  — unix timestamp at stake
-    pub expires_at: i64,     // 8  — staked_at + duration; 0 = lifetime
-    pub status: u8,          // 1  — 0=active, 1=withdrawn (terminal)
+    pub owner: Pubkey,       // 32 ΓÇö user wallet
+    pub tier: u8,            // 1  ΓÇö 1=MOJO, 2=DOJO, 3=SPACE COWBOY
+    pub amount: u64,         // 8  ΓÇö locked JTX in 9-decimal raw
+    pub staked_at: i64,      // 8  ΓÇö unix timestamp at stake
+    pub expires_at: i64,     // 8  ΓÇö staked_at + duration; 0 = lifetime
+    pub status: u8,          // 1  ΓÇö 0=active, 1=withdrawn (terminal)
     pub bump: u8,            // 1
 }
 
@@ -2422,7 +2422,7 @@ pub struct DonateJtx<'info> {
     #[account(mut)]
     pub donor_jtx_account: Box<InterfaceAccount<'info, anchor_spl::token_interface::TokenAccount>>,
 
-    /// Vault's JTX token account (Token-2022) — receives the donated JTX
+    /// Vault's JTX token account (Token-2022) ΓÇö receives the donated JTX
     #[account(mut)]
     pub vault_jtx_account: Box<InterfaceAccount<'info, anchor_spl::token_interface::TokenAccount>>,
 
@@ -2575,7 +2575,7 @@ pub struct AaronAudit<'info> {
 
 /// Accounts for `refresh_aaron_audit` (B3.8). Mirrors `AaronAudit` except
 /// the audit PDA is mutated rather than initialized, and there's no
-/// system_program (no rent transfer needed). The AGT is read-only too —
+/// system_program (no rent transfer needed). The AGT is read-only too ΓÇö
 /// the immutable `aaron_audit_hash` is intentionally not touched.
 #[derive(Accounts)]
 pub struct RefreshAaronAudit<'info> {
@@ -2725,7 +2725,7 @@ pub struct FounderOnly<'info> {
 }
 
 // Account fields are Box<...> to keep MintDonorNft::try_accounts under the
-// BPF 4KB stack ceiling — same pattern used by DonateJtx (commit 0256cfc).
+// BPF 4KB stack ceiling ΓÇö same pattern used by DonateJtx (commit 0256cfc).
 #[derive(Accounts)]
 pub struct MintDonorNft<'info> {
     #[account(mut)]
@@ -2755,7 +2755,7 @@ pub struct MintDonorNft<'info> {
     )]
     pub vault_config: Box<Account<'info, VaultConfig>>,
 
-    /// Donor's AGT attestation — must be owned by the signer and still valid.
+    /// Donor's AGT attestation ΓÇö must be owned by the signer and still valid.
     /// Required so we can pin `aaron_audit_account` to this attestation below.
     #[account(
         seeds = [b"agt_attestation", agt_attestation.owner.as_ref()],
@@ -2776,7 +2776,7 @@ pub struct MintDonorNft<'info> {
     pub aaron_audit_account: Box<Account<'info, AaronAuditAccount>>,
 
     /// Pyth SOL/USD price update (PriceUpdateV2 PDA, posted by anyone via the
-    /// Pyth Solana Receiver). Read on-chain — caller no longer supplies price.
+    /// Pyth Solana Receiver). Read on-chain ΓÇö caller no longer supplies price.
     pub pyth_price_update: Box<Account<'info, PriceUpdateV2>>,
 
     /// B3.10: Address that becomes the Metaplex Core asset (the wallet-visible
@@ -2786,7 +2786,7 @@ pub struct MintDonorNft<'info> {
     #[account(mut)]
     pub asset: Signer<'info>,
 
-    /// CHECK: Metaplex Core program — verified by hardcoded program ID. Used
+    /// CHECK: Metaplex Core program ΓÇö verified by hardcoded program ID. Used
     /// as the CPI target for CreateV2 inside the handler.
     #[account(address = mpl_core::ID)]
     pub mpl_core_program: AccountInfo<'info>,
@@ -2794,9 +2794,9 @@ pub struct MintDonorNft<'info> {
     pub system_program: Program<'info, System>,
 }
 
-// ───────────────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Stake subsystem accounts (v2.1)
-// ───────────────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 //
 // PDAs:
 //   stake_position           [b"stake", owner]
@@ -2805,7 +2805,7 @@ pub struct MintDonorNft<'info> {
 //
 // All transfers use Token-2022 `transfer_checked` (required because JTX is
 // Token-2022; the program must enforce mint identity even if transferFee=0bps
-// today, in case extensions are toggled in future deploys — though after the
+// today, in case extensions are toggled in future deploys ΓÇö though after the
 // 2026-04-30 revoke that's no longer possible).
 
 // All Account/InterfaceAccount fields are Box<...> to keep
@@ -2817,7 +2817,7 @@ pub struct StakeForTier<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
 
-    /// User's JTX ATA — must hold ≥ tier threshold.
+    /// User's JTX ATA ΓÇö must hold ΓëÑ tier threshold.
     #[account(
         mut,
         token::mint = jtx_mint,
@@ -2836,7 +2836,7 @@ pub struct StakeForTier<'info> {
     pub stake_position: Box<Account<'info, StakePosition>>,
 
     /// CHECK: Program-owned PDA that holds the locked JTX. Address-only;
-    /// no data lives at this PDA — it's just a signer for the stake_vault_ata.
+    /// no data lives at this PDA ΓÇö it's just a signer for the stake_vault_ata.
     #[account(
         seeds = [b"stake_vault_authority", vault_config.key().as_ref()],
         bump
@@ -2858,7 +2858,7 @@ pub struct StakeForTier<'info> {
     pub stake_vault_ata: Box<InterfaceAccount<'info, TokenAccountInterface>>,
 
     /// Caller must already have a valid gaze attestation (preserves the
-    /// "gaze before stake" model — tiers gate optical-proof users only).
+    /// "gaze before stake" model ΓÇö tiers gate optical-proof users only).
     #[account(
         mut,
         seeds = [b"agt_attestation", user.key().as_ref()],
@@ -2893,7 +2893,7 @@ pub struct Unstake<'info> {
     pub user_jtx_ata: InterfaceAccount<'info, TokenAccountInterface>,
 
     /// Stake position must exist, be owned by `user`, and be active. Closed
-    /// (rent refunded) on successful withdrawal — re-stake creates a new one.
+    /// (rent refunded) on successful withdrawal ΓÇö re-stake creates a new one.
     #[account(
         mut,
         close = user,
@@ -2949,7 +2949,7 @@ pub struct RestakeUpgrade<'info> {
     )]
     pub user_jtx_ata: InterfaceAccount<'info, TokenAccountInterface>,
 
-    /// Existing stake position — must be active and lower tier than new_tier.
+    /// Existing stake position ΓÇö must be active and lower tier than new_tier.
     #[account(
         mut,
         seeds = [b"stake", user.key().as_ref()],
@@ -3005,7 +3005,7 @@ pub struct MigrateV2Thresholds<'info> {
     pub vault_config: Account<'info, VaultConfig>,
 
     // Caller passes target AgtAttestation accounts in remaining_accounts.
-    // Each is mutated in the instruction body via account-info iteration —
+    // Each is mutated in the instruction body via account-info iteration ΓÇö
     // see migrate_v2_thresholds() for the safe-deserialize loop.
 }
 
@@ -3055,10 +3055,10 @@ pub enum VaultError {
     SignerNotInMultisig,
 
     // --- AGT Errors ---
-    #[msg("Gaze tensor does not satisfy simplex constraint (Σ w_i ≈ 1)")]
+    #[msg("Gaze tensor does not satisfy simplex constraint (╬ú w_i Γëê 1)")]
     InvalidSimplexProjection,
 
-    #[msg("Learning rate α must be between 0 and 10000 bps")]
+    #[msg("Learning rate ╬▒ must be between 0 and 10000 bps")]
     InvalidAlpha,
 
     #[msg("Attestation has been revoked")]
@@ -3099,19 +3099,19 @@ pub enum VaultError {
     Unauthorized,
 
     // --- B3.9: AARON operator allowlist ---
-    #[msg("aaron_operator signer is not in vault_config.multisig_signers — JETT proof-of-personhood is on-chain enforced")]
+    #[msg("aaron_operator signer is not in vault_config.multisig_signers ΓÇö JETT proof-of-personhood is on-chain enforced")]
     UnauthorizedAaronOperator,
 
-    #[msg("This instruction is deprecated — use stake_for_tier(tier) instead")]
+    #[msg("This instruction is deprecated ΓÇö use stake_for_tier(tier) instead")]
     Deprecated,
 
-    #[msg("Stake position already exists for this wallet — call unstake or restake_upgrade")]
+    #[msg("Stake position already exists for this wallet ΓÇö call unstake or restake_upgrade")]
     StakeAlreadyExists,
 
-    #[msg("Stake has not yet expired — cannot withdraw before expires_at")]
+    #[msg("Stake has not yet expired ΓÇö cannot withdraw before expires_at")]
     StakeNotExpired,
 
-    #[msg("SPACE COWBOY lifetime stake is permanently locked — no withdrawal possible, ever")]
+    #[msg("SPACE COWBOY lifetime stake is permanently locked ΓÇö no withdrawal possible, ever")]
     LifetimeStakePermanent,
 
     #[msg("Stake position has already been withdrawn (terminal state)")]
