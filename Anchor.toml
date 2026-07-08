@@ -11,7 +11,7 @@ jett_vault = "JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7"
 #   anchor build -p jett-vault -- --features devnet
 [programs.devnet]
 jtx_cstb_trust = "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
-jett_vault = "FADKaMRVWdgsQXMhdBTLktdZqaEMA2VxmYcuhqhQ5SMC"
+jett_vault = "ExjFkkX3Zogyb5uBeaff8FdKZbjjVHcCHgcaQiP3qQDS"
 
 # Mainnet — JTX protocol live as of 2026-05-23
 #   jtx_cstb_trust = DePIN program (gaze attestation + OPTX mint)
@@ -38,7 +38,7 @@ startup_wait = 5000
 [test.validator]
 url = "https://api.mainnet-beta.solana.com"
 
-# Clone $JTX token for testing
+# Clone $JTX v2 token for testing
 [[test.validator.clone]]
 address = "JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe"
 
