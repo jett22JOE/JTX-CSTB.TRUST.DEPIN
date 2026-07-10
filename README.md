@@ -18,7 +18,7 @@ ________________
 - [astroknots.space](https://astroknots.space) — Waitlist + Community Vault marketing
 - [astro.knots.sol](https://astroknots.space) — SNS V2 Domain
 - [jett.vision](https://jett.vision) — JOEvision deeplink
-- [astroknots.space/aaron](https://astroknots.space/aaron) — AARON Router API
+- [aaron.jettoptics.ai](https://aaron.jettoptics.ai) — AARON Router API
 - [jettoptx.dev/docs](https://jettoptx.dev/docs) — Developer Docs
 
 ---
