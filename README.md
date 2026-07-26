@@ -380,5 +380,5 @@ MIT — see [LICENSE](LICENSE) if present; otherwise MIT as declared in crate ma
 
 ## Contact
 
-**Joshua Martinez** — [founder@jettoptics.ai](mailto:founder@jettoptics.ai)  
+**Joshua Martinez** — [joe@jettoptics.ai](mailto:joe@jettoptics.ai)  
 **X:** [@jettoptx](https://x.com/jettoptx)
