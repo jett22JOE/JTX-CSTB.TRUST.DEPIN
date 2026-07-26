@@ -125,7 +125,7 @@ function getAaronAuditPDA(
 // TEST SUITE
 // ============================================================================
 
-describe("jett-vault (Astro Knots v2.1 — Scrubbed)", () => {
+describe("jett-vault (v2.1 — Scrubbed)", () => {
   const provider = AnchorProvider.env();
   anchor.setProvider(provider);
 

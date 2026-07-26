@@ -46,7 +46,7 @@ ________________
 
 | Detail | Value |
 |--------|-------|
-| **$JTX v2 mint** | `JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe` (Token-2022, 9 dec) — **canonical** |
+| **$JTX v2 mint** | `JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe` (Token-2022, 9 dec, on-chain name **Jett Optics**) — **canonical** |
 | **$JTX v1 (legacy)** | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` — revoked authority |
 | **Mint authority** | ✅ **Revoked** — fixed supply forever |
 | **Meteora DLMM pool** | `54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz` |
@@ -150,7 +150,7 @@ User Holds $JTX ------> Initiate Handshake
 
 | Token | Mint | Network | Purpose |
 |-------|------|---------|---------|
-| `$JTX v2` | `JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe` | ✅ Mainnet | **Canonical** governance + access (Token-2022, 9 dec) |
+| `$JTX v2` (Jett Optics) | `JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe` | ✅ Mainnet | **Canonical** governance + access (Token-2022, 9 dec; renamed from "Astro Knots" 2026-07-26) |
 | `$JTX v1` | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` | Mainnet | Legacy — mint authority revoked |
 | `$OPTX` | `DSyauRAZwUd2BrTk3P8k2yUxxvcx5X4BBg3Gh3VbeRG3` | Devnet | Gaze attestation rewards (Token-2022, 6 dec) — mints live |
 | `$CSTB` | `4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL` | Devnet | DePIN validator token |
