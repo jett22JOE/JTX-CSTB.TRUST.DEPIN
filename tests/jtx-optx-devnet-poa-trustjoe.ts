@@ -16,7 +16,7 @@ import {
 import { expect } from "chai";
 
 // Import the program IDL (generated after anchor build)
-import { JtxCstbTrust } from "../target/types/jtx_cstb_trust";
+import { JtxOptxDevnetPoaTrustjoe } from "../target/types/jtx_optx_devnet_poa_trustjoe";
 
 // ============================================================================
 // TEST CONSTANTS
@@ -25,8 +25,8 @@ import { JtxCstbTrust } from "../target/types/jtx_cstb_trust";
 // $JTX v2 mainnet mint (cloned in test validator)
 const JTX_MINT = new PublicKey("JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe");
 
-// $CSTB devnet mint
-const CSTB_MINT = new PublicKey("4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL");
+// Legacy compute-mint layout slot (devnet) — unused for gating
+const LEGACY_COMPUTE_MINT = new PublicKey("4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL");
 
 // Default thresholds
 const DEFAULT_GAZE_THRESHOLD = 222; // 2.22 seconds
@@ -45,7 +45,7 @@ const createSampleGazeData = () => ({
 });
 
 const createSampleComputeProof = () => ({
-  proofHash: new Uint8Array(32).fill(0xcd), // Mock CSTB hash
+  proofHash: new Uint8Array(32).fill(0xcd), // Mock opaque compute proof hash
   difficulty: 2, // Medium
   deviceType: 2, // Laptop
   nonce: new BN(123456789),
@@ -103,12 +103,12 @@ function generateHandshakeId(): Uint8Array {
 // TEST SUITE
 // ============================================================================
 
-describe("JTX-CSTB Trust Protocol", () => {
+describe("JTX OPTX PoA Trust Protocol", () => {
   // Configure the client to use the local cluster
   const provider = AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.JtxCstbTrust as Program<JtxCstbTrust>;
+  const program = anchor.workspace.JtxOptxDevnetPoaTrustjoe as Program<JtxOptxDevnetPoaTrustjoe>;
   const programId = program.programId;
 
   // Test accounts
@@ -181,7 +181,7 @@ describe("JTX-CSTB Trust Protocol", () => {
           authority: authority.publicKey,
           protocolConfig: protocolConfigPDA,
           jtxMint: JTX_MINT,
-          cstbMint: CSTB_MINT,
+          cstbMint: LEGACY_COMPUTE_MINT,
           optxMint: optxMint,
           systemProgram: SystemProgram.programId,
         })
@@ -197,7 +197,7 @@ describe("JTX-CSTB Trust Protocol", () => {
         authority.publicKey.toString()
       );
       expect(config.jtxMint.toString()).to.equal(JTX_MINT.toString());
-      expect(config.cstbMint.toString()).to.equal(CSTB_MINT.toString());
+      expect(config.cstbMint.toString()).to.equal(LEGACY_COMPUTE_MINT.toString());
       expect(config.optxMint.toString()).to.equal(optxMint.toString());
       expect(config.totalHandshakes.toNumber()).to.equal(0);
       expect(config.totalAttestations.toNumber()).to.equal(0);

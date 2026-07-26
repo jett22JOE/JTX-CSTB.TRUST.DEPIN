@@ -447,7 +447,7 @@ export class VaultClient {
     return tx.rpc();
   }
 
-  /** Link gaze attestation to donor (CPI to jtx_cstb_trust) */
+  /** Link gaze attestation to donor (CPI to jtx_optx_devnet_poa_trustjoe) */
   async linkAttestation(
     donorPubkey: PublicKey,
     attestationPDA: PublicKey,

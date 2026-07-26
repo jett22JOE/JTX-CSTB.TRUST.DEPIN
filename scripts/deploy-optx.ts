@@ -51,7 +51,7 @@ const OPTX_CONFIG = {
   decimals: 6,
   totalSupply: 22_000_000 * 10 ** 6, // 22M with 6 decimals
   uri: "https://jettoptics.ai/tokens/optx.json", // Metadata URI
-  description: "JTX-CSTB Trust Protocol Attestation Token",
+  description: "JTX OPTX PoA Trust Attestation Token",
 };
 
 // Protocol PDA seed
@@ -142,7 +142,7 @@ async function main() {
     additionalMetadata: [
       ["description", OPTX_CONFIG.description],
       ["total_supply", OPTX_CONFIG.totalSupply.toString()],
-      ["protocol", "JTX-CSTB Trust"],
+      ["protocol", "JTX OPTX PoA Trust"],
     ],
   };
 

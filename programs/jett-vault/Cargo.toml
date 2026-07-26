@@ -4,7 +4,7 @@ version = "2.0.0"
 description = "ASTRO KNOTS VAULT — AGT Attestation + Knot Invariants + AARON Audit + Fundraising"
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/jett22JOE/JTX-CSTB.TRUST.DEPIN"
+repository = "https://github.com/jettoptx/jettoptx-poa-depin"
 
 [lib]
 crate-type = ["cdylib", "lib"]
@@ -21,13 +21,13 @@ idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 # distinguish devnet test transactions from mainnet ones (same program ID
 # on both networks → Phantom flags every devnet tx as "valid on mainnet").
 # Use:  anchor build -- --features devnet
-devnet = []
+devnet = ["jtx-optx-devnet-poa-trustjoe/devnet"]
 
 [dependencies]
 anchor-lang = { version = "0.30.1", features = ["init-if-needed"] }
 anchor-spl = { version = "0.30.1", features = ["token", "token_2022", "associated_token"] }
 solana-program = "1.18"
-jtx-cstb-trust = { path = "../jtx-cstb-trust", features = ["cpi"] }
+jtx-optx-devnet-poa-trustjoe = { path = "../jtx-optx-devnet-poa-trustjoe", features = ["cpi"] }
 shared-constants = { path = "../../crates/shared-constants" }
 pyth-solana-receiver-sdk = "0.6"
 # Metaplex Core for B3.10 — mint_donor_nft CPIs to CreateV2 so the

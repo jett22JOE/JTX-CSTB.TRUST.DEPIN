@@ -2,19 +2,30 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_2022::{self, MintTo, Token2022};
 use anchor_spl::token_interface::{Mint, TokenAccount};
 
+// Mainnet program ID (default / localnet).
+// Devnet uses a separate ID via `--features devnet` so Phantom Blowfish can
+// distinguish test transactions from mainnet ones.
+#[cfg(not(feature = "devnet"))]
+declare_id!("85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF");
+
+#[cfg(feature = "devnet")]
 declare_id!("79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF");
 
-/// JTX-CSTB Trust Protocol v2.0.0
+/// JTX OPTX Proof-of-Attention Trust Protocol v2.1.0
 ///
-/// Combines JETT OPTICS gaze-based Proof-of-Attention with CompuStable's
-/// computational proofs to create verified human-compute attestations on-chain.
-/// Enables $JTX holders to mint $OPTX tokens through verified identity attestations.
+/// Combines JETT OPTICS gaze-based Proof-of-Attention with an opaque
+/// compute-proof hash to create verified human-compute attestations on-chain.
+/// Enables $JTX holders to mint $OPTX through verified identity attestations.
 ///
-/// Security Audit: HEDGEHOG MCP - Grok 4.1 Fast Reasoning (2026-01-30)
-/// Fixes applied: Overflow protection, double-mint prevention, replay protection
+/// Naming: crate formerly `jtx_cstb_trust`. CompuStable / $CSTB is not a
+/// product dependency. The on-chain `cstb_mint` account field is a legacy
+/// layout slot (stored at initialize, unused for gating).
+///
+/// Internal review baseline: HEDGEHOG MCP (2026-01-30) — overflow protection,
+/// double-mint prevention, replay protection. Third-party audit: pending.
 
 #[program]
-pub mod jtx_cstb_trust {
+pub mod jtx_optx_devnet_poa_trustjoe {
     use super::*;
 
     /// Initialize the protocol with token mints and configuration
@@ -41,10 +52,10 @@ pub mod jtx_cstb_trust {
         config.paused = false; // [SECURITY FIX] Emergency pause capability
         config.bump = ctx.bumps.protocol_config;
 
-        msg!("JTX-CSTB Trust Protocol v2.0.0 initialized");
+        msg!("JTX OPTX PoA Trust Protocol v2.1.0 initialized");
         msg!("Authority: {}", config.authority);
         msg!("JTX Mint: {}", config.jtx_mint);
-        msg!("CSTB Mint: {}", config.cstb_mint);
+        msg!("Legacy compute mint slot: {}", config.cstb_mint);
         msg!("OPTX Mint: {}", config.optx_mint);
         msg!("Gaze threshold: {} centiseconds", gaze_threshold);
         msg!("Min compute difficulty: {}", compute_difficulty_min);
@@ -230,7 +241,8 @@ pub mod jtx_cstb_trust {
         Ok(())
     }
 
-    /// Submit compute proof data (CSTB hash + difficulty)
+    /// Submit opaque compute proof data (hash + difficulty).
+    /// Not a CompuStable / $CSTB verification — caller-supplied hash attestation only.
     pub fn submit_compute_proof(
         ctx: Context<SubmitComputeProof>,
         proof_hash: [u8; 32],
@@ -520,7 +532,8 @@ pub struct ProtocolConfig {
     pub authority: Pubkey,
     /// $JTX token mint address (mainnet v2: JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe)
     pub jtx_mint: Pubkey,
-    /// $CSTB token mint address (devnet: 4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL)
+    /// Legacy layout field (historically named cstb_mint). Stored at initialize;
+    /// unused for gating. Not a CompuStable product mint.
     pub cstb_mint: Pubkey,
     /// $OPTX token mint address (Token-2022)
     pub optx_mint: Pubkey,
@@ -743,7 +756,7 @@ pub struct Initialize<'info> {
     /// CHECK: JTX mint address, validated by authority
     pub jtx_mint: UncheckedAccount<'info>,
 
-    /// CHECK: CSTB mint address, validated by authority
+    /// CHECK: Legacy compute-mint layout slot; authority-supplied at initialize, unused for gating.
     pub cstb_mint: UncheckedAccount<'info>,
 
     /// OPTX mint (Token-2022)

@@ -40,7 +40,7 @@
 // [x] Agent payments non-refundable by design
 // [x] Reentrancy guards via Anchor account checks + state flags
 // [x] Custom error enums with descriptive messages
-// [x] CPI to jtx_cstb_trust for base attestation verification
+// [x] CPI to jtx_optx_devnet_poa_trustjoe (PoA trust) for base attestation verification
 // [x] VaultEvent emitted on every state change (webhook-ready)
 // [x] Overflow protection on all counters and amounts
 // [x] AGT tensor hash validated (sha256, 32 bytes)
@@ -437,11 +437,11 @@ pub mod jett_vault {
     }
 
     // ========================================================================
-    // INSTRUCTION #4: link_attestation (base CPI to jtx_cstb_trust)
+    // INSTRUCTION #4: link_attestation (base CPI to jtx_optx_devnet_poa_trustjoe)
     // ========================================================================
 
     /// JOE calls this autonomously to verify a donor's gaze attestation
-    /// via CPI to jtx_cstb_trust's verify_attestation instruction.
+    /// via CPI to jtx_optx_devnet_poa_trustjoe's verify_attestation instruction.
     /// If donor has a valid referrer, apply 1.5x OPTX multiplier.
     pub fn link_attestation(ctx: Context<LinkAttestation>) -> Result<()> {
         let donor = &mut ctx.accounts.donor;
@@ -453,13 +453,13 @@ pub mod jett_vault {
         );
         require!(!donor.attested, VaultError::AlreadyAttested);
 
-        // CPI to jtx_cstb_trust verify_attestation (view-only, validates PDA)
+        // CPI to jtx_optx_devnet_poa_trustjoe verify_attestation (view-only, validates PDA)
         let cpi_program = ctx.accounts.trust_program.to_account_info();
-        let cpi_accounts = jtx_cstb_trust::cpi::accounts::VerifyAttestation {
+        let cpi_accounts = jtx_optx_devnet_poa_trustjoe::cpi::accounts::VerifyAttestation {
             attestation: ctx.accounts.attestation.to_account_info(),
         };
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-        jtx_cstb_trust::cpi::verify_attestation(cpi_ctx)?;
+        jtx_optx_devnet_poa_trustjoe::cpi::verify_attestation(cpi_ctx)?;
 
         // Mark donor as attested
         donor.attested = true;
@@ -1220,26 +1220,20 @@ pub mod jett_vault {
     // STUB: check_and_launch (Phase 2)
     // ========================================================================
 
-    pub fn check_and_launch(ctx: Context<JoeAutonomous>) -> Result<()> {
-        require!(
-            !ctx.accounts.vault_config.paused,
-            VaultError::VaultPaused
-        );
-        msg!("check_and_launch: stub ΓÇö implement in Phase 2");
-        Ok(())
+    pub fn check_and_launch(_ctx: Context<JoeAutonomous>) -> Result<()> {
+        // Audit surface: Phase 2 stub must fail closed (was Ok(())).
+        msg!("check_and_launch is DEPRECATED — Phase 2 not implemented");
+        err!(VaultError::Deprecated)
     }
 
     // ========================================================================
     // STUB: trigger_refunds (Phase 2)
     // ========================================================================
 
-    pub fn trigger_refunds(ctx: Context<JoeAutonomous>) -> Result<()> {
-        require!(
-            !ctx.accounts.vault_config.paused,
-            VaultError::VaultPaused
-        );
-        msg!("trigger_refunds: stub ΓÇö implement in Phase 2");
-        Ok(())
+    pub fn trigger_refunds(_ctx: Context<JoeAutonomous>) -> Result<()> {
+        // Audit surface: Phase 2 stub must fail closed (was Ok(())).
+        msg!("trigger_refunds is DEPRECATED — Phase 2 not implemented");
+        err!(VaultError::Deprecated)
     }
 
     // ========================================================================
@@ -1418,13 +1412,10 @@ pub mod jett_vault {
     // STUB: update_phase (Phase 2)
     // ========================================================================
 
-    pub fn update_phase(ctx: Context<JoeAutonomous>) -> Result<()> {
-        require!(
-            !ctx.accounts.vault_config.paused,
-            VaultError::VaultPaused
-        );
-        msg!("update_phase: stub ΓÇö implement in Phase 2");
-        Ok(())
+    pub fn update_phase(_ctx: Context<JoeAutonomous>) -> Result<()> {
+        // Audit surface: Phase 2 stub must fail closed (was Ok(())).
+        msg!("update_phase is DEPRECATED — Phase 2 not implemented");
+        err!(VaultError::Deprecated)
     }
 
     // ========================================================================
@@ -1432,8 +1423,9 @@ pub mod jett_vault {
     // ========================================================================
 
     pub fn close_vault(_ctx: Context<MultisigAction>) -> Result<()> {
-        msg!("close_vault: stub ΓÇö implement in Phase 2");
-        Ok(())
+        // Audit surface: Phase 2 stub must fail closed (was Ok(())).
+        msg!("close_vault is DEPRECATED — Phase 2 not implemented");
+        err!(VaultError::Deprecated)
     }
 
     // ========================================================================
@@ -1441,8 +1433,9 @@ pub mod jett_vault {
     // ========================================================================
 
     pub fn migrate_from_legacy(_ctx: Context<FounderOnly>) -> Result<()> {
-        msg!("migrate_from_legacy: stub ΓÇö implement when ready");
-        Ok(())
+        // Audit surface: stub must fail closed (was Ok(())).
+        msg!("migrate_from_legacy is DEPRECATED — not implemented");
+        err!(VaultError::Deprecated)
     }
 
     // ========================================================================
@@ -2491,7 +2484,7 @@ pub struct LinkAttestation<'info> {
 
     /// CHECK: Validated by program ID constraint
     #[account(
-        constraint = trust_program.key() == jtx_cstb_trust::ID @ VaultError::InvalidTrustProgram
+        constraint = trust_program.key() == jtx_optx_devnet_poa_trustjoe::ID @ VaultError::InvalidTrustProgram
     )]
     pub trust_program: AccountInfo<'info>,
 }
@@ -2699,6 +2692,12 @@ pub struct MultisigAction<'info> {
 
 #[derive(Accounts)]
 pub struct JoeAutonomous<'info> {
+    /// Authority or multisig signer — Phase 2 autonomous ixs are deprecated stubs.
+    #[account(
+        constraint = signer.key() == vault_config.authority
+            || vault_config.multisig_signers.contains(&signer.key())
+            @ VaultError::UnauthorizedSigner
+    )]
     pub signer: Signer<'info>,
 
     #[account(
