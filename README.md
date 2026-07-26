@@ -1,245 +1,202 @@
-# Astro Knots — Spatial Encryption on Solana
+# jettoptx-poa-depin
 
-_________________
-AARON PROTOCOL
-________________
+**Canonical Solana programs for Jett Optics Proof-of-Attention (PoA) DePIN and the community vault.**
 
-[![Solana](https://img.shields.io/badge/Solana-Mainnet%20Live-14F195?style=flat&logo=solana)](https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF)
-[![Anchor](https://img.shields.io/badge/Anchor-0.30.1-blue)](https://anchor-lang.com)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Security](https://img.shields.io/badge/Security-ASTRO.KNOTS%20Verified-brightgreen)](.)
-[![Aaron Router](https://img.shields.io/badge/Router-aaron--router-orange)](https://github.com/jettoptx/jettoptx-aaron-router)
-[![Trading](https://img.shields.io/badge/$JTX-Trading%202026--05--25-f97316)](https://app.meteora.ag/dlmm/54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz)
+On-chain source of record for:
 
-## Live
+1. **PoA Trust** — gaze attestation handshakes, compute proofs, OPTX entropy accounting  
+2. **Jett Vault** — community vault, AGT attestations, stake tiers, AARON audit stamps  
 
-- [jettoptics.ai](https://jettoptics.ai) — Main Site + **Buy $JTX**
-- [jettoptx.chat](https://jettoptx.chat) — DOJO / JettChat (gated product)
-- [astroknots.space](https://astroknots.space) — Waitlist + Community Vault marketing
-- [astro.knots.sol](https://astroknots.space) — SNS V2 Domain
-- [jett.vision](https://jett.vision) — JOEvision deeplink
-- [astroknots.space/aaron](https://astroknots.space/aaron) — AARON Router API
-- [jettoptx.dev/docs](https://jettoptx.dev/docs) — Developer Docs
+Stack: **Anchor 0.30.1** · **Solana mainnet-beta** (+ devnet test IDs) · **MIT**
+
+| | |
+|--|--|
+| Site | [jettoptics.ai](https://jettoptics.ai) |
+| Docs | [jettoptx-docs](https://github.com/jettoptx/jettoptx-docs) · [docs.jettoptx.dev](https://docs.jettoptx.dev) |
+| Edge API | AARON Router ([private](https://github.com/jettoptx/jettoptx-aaron-router)) · public edge [aaron.jettoptics.ai](https://aaron.jettoptics.ai) |
+| Product UI | [jettoptx.chat](https://jettoptx.chat) · [jtx.astroknots.space](https://jtx.astroknots.space) |
 
 ---
 
-## Programs
+## Programs (live)
 
-### Mainnet (live)
+### Mainnet
 
-| Program | ID | Status | Explorer |
-|---------|----|--------|----------|
-| `jtx_cstb_trust` (DePIN) | `85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF` | ✅ Live | [view](https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF) |
-| `jett_vault` | `JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7` | ✅ Live | [view](https://explorer.solana.com/address/JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7) |
+| Role | On-disk crate / module* | Program ID | Explorer |
+|------|-------------------------|------------|----------|
+| **PoA Trust** | `programs/jtx-cstb-trust` → `jtx_cstb_trust` | `85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF` | [view](https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF) |
+| **Jett Vault** | `programs/jett-vault` → `jett_vault` | `JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7` | [view](https://explorer.solana.com/address/JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7) |
 
-### Devnet (testing — same code, separate keypair via `--features devnet`)
+\*Crate names retain a historical `cstb` path for deploy continuity. **Product scope is PoA / OPTX trust — not CompuStable / $CSTB.** See [Out of product scope](#out-of-product-scope).
 
-| Program | ID | Status |
-|---------|----|--------|
-| `jtx_cstb_trust` | `79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF` | ✅ Deployed |
-| `jett_vault` | `FADKaMRVWdgsQXMhdBTLktdZqaEMA2VxmYcuhqhQ5SMC` (auth flipped 2026-05-02) | ✅ Deployed |
-| `depin_program` (legacy) | `91SqPNGRFrTgwSM3S7grZK8A6TCqn5STFGK4mAfqWMbQ` | 🟡 Deprecated — superseded by mainnet `jtx_cstb_trust` |
+### Devnet (`--features devnet`)
 
----
+| Role | Program ID |
+|------|------------|
+| PoA Trust | `79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF` |
+| Jett Vault | `ExjFkkX3Zogyb5uBeaff8FdKZbjjVHcCHgcaQiP3qQDS` |
 
-## Mainnet Trading
-
-| Detail | Value |
-|--------|-------|
-| **$JTX v2 mint** | `JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe` (Token-2022, 9 dec) — **canonical** |
-| **$JTX v1 (legacy)** | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` — revoked authority |
-| **Mint authority** | ✅ **Revoked** — fixed supply forever |
-| **Meteora DLMM pool** | `54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz` |
-| **Trading starts** | 2026-05-25 15:10 UTC |
-| **Initial price** | 0.093524 SOL per JTX |
-| **Seeded liquidity** | 6,000 JTX |
-| **Bin step** | 25 bps |
-| **LP lock** | 90 days via Meteora DLMM |
-| **Treasury (tri-authority)** | `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` |
-| **Tempo agent wallet (EVM)** | `0xf35f4021ceb48672c6f804cd57973b0cbb2b6c3d` |
-| **Buy / Track** | [jettoptics.ai/buy](https://jettoptics.ai/buy) |
+Legacy program `91SqPNGRFrTgwSM3S7grZK8A6TCqn5STFGK4mAfqWMbQ` is **deprecated** (superseded by mainnet PoA Trust).
 
 ---
 
-## System Architecture
+## Upgrade authority (audit-critical)
 
-```mermaid
-graph TD
-    User[User / MOJO Mobile] -->|Gaze Pattern| JETT[JETT Auth]
-    JETT -->|Biometric Signature| OPTX_BRIDGE["OPT𝕏 Bridge"]
-    OPTX_BRIDGE -->|Opaque Proof| AARON[AARON Router]
-    AARON <-->|x402 Payments & Attestations| OPTXChain["OPTX Blockchain<br/>Solana Mainnet"]
-    AARON -->|Domain Management| KNOT[KNOT Terminal]
-    AARON -->|Audit Trail| STDB[SpacetimeDB]
-    JOE[JOE Agent] -->|Grok 4.20 + Chat| AARON
+Both mainnet programs use the **Squads vault** as BPF upgrade authority. Upgrades require multisig approval — not a single hot wallet.
+
+| Field | Value |
+|-------|--------|
+| **Upgrade authority** | `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` |
+| **Control** | Squads **2-of-3** multisig vault (treasury) |
+| **PoA Trust status** | Transferred **2026-07-26** (was single-key `EFvg…`, retired) |
+| **Jett Vault status** | Same Squads authority (already in place) |
+| **Immutable?** | No — upgradeable under governance only |
+
+**Verify anytime:**
+
+```bash
+solana program show 85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF --url mainnet-beta
+# Authority: 9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7
+
+solana program show JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7 --url mainnet-beta
+# Authority: 9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7
 ```
 
-### End-to-End Flow
+**PoA authority transfer (record):**
 
-```
-┌─────────────┐     ┌──────────────┐     ┌────────────┐     ┌──────────────┐
-│ MOJO / Web  │────>│ JETT Auth    │────>│ AARON      │────>│ Solana       │
-│ (Gaze Input)│     │ (AGT Tensor) │     │ (Edge Node)│     │ (Mainnet)    │
-└─────────────┘     └──────────────┘     └────────────┘     └──────────────┘
-      │                    │                    │                    │
-      │  1. Iris capture   │                    │                    │
-      │  2. COG/EMO/ENV    │                    │                    │
-      │     classification │                    │                    │
-      │                    │  3. Biometric hash │                    │
-      │                    │  4. AGT projection │                    │
-      │                    │                    │  5. Handshake tx   │
-      │                    │                    │  6. Gaze attestation│
-      │                    │                    │  7. Compute proof  │
-      │                    │                    │  8. Finalize       │
-      │                    │                    │                    │
-      │                    │                    │  9. OPTX mint  ───>│
-```
+| | |
+|--|--|
+| Tx | [`4PDYvJX1q1sFzc9SggFj6AR9UXsPyUkBxDwmZoJWi93udcWDE3viD9HGqUECQ97KSS9x58T636tuKTGVBrQWoks1`](https://explorer.solana.com/tx/4PDYvJX1q1sFzc9SggFj6AR9UXsPyUkBxDwmZoJWi93udcWDE3viD9HGqUECQ97KSS9x58T636tuKTGVBrQWoks1) |
+| From | `EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk` (retired ops key) |
+| To | `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` |
+
+> **Mainnet deploy / upgrade policy:** never deploy from a personal keypair. Coordinate every bytecode change through Squads.
 
 ---
 
-## Naming Hierarchy
+## Out of product scope
 
-| Name | Full | Role |
-|------|------|------|
-| **JETT Auth** | Joule Encryption Temporal Template Auth | Biometric gaze signature + SSO |
-| **OPT𝕏** | Optical Program Technologic 𝕏tension | Secure bridge: JETT Auth → on-chain proofs |
-| **AARON** | Asynchronous Audit RAG Optical Node | On-chain protocol + private edge router |
-| **OPTX** | Public Blockchain & Token Network | Solana mainnet tokens and protocol |
-| **AGT** | Agentive Gaze Tensor | COG/EMO/ENV tensors — performs Web4 actions for JETT Auth |
-| **JOE** | jOSH Operating Environment | AI agent with Grok 4.20 vision + Matrix comms |
+Be explicit with auditors and integrators:
 
----
-
-## Architecture Overview
-
-The JTX-CSTB Trust Protocol uses AGT (Agentive Gaze Tensor) attestations with biometric proof hashing. The protocol combines gaze-based Proof-of-Attention with computational proofs to create verified human-compute attestations on-chain. `$JTX` holders can mint `$OPTX` through verified identity attestations.
-
-### Key Concepts
-
-- **Biometric proof hashing** — opaque 32-byte proofs computed client-side; only the hash is stored on-chain
-- **AGT tensor math** — `w(t+1) = projection[(1 - alpha) * w(t) + alpha * g(t)]`
-- **Simplex projection** — AGT weights live on the 2-simplex (COG + EMO + ENV = 1.0)
-- **Dual-space key** — `k(t) = <w(t), s>` inner product with session seed
-- **AARON audit** — immutable three-axis risk scoring (COG x ENV x EMO) with on-chain hash
-- **Token-2022 standard** for all tokens
-- **Non-custodial vault** with on-chain refund mechanism
-
-### Protocol Flow
-
-```
-User Holds $JTX ------> Initiate Handshake
-                                |
-                    +-----------+-----------+
-                    v                       v
-          Submit Gaze Attestation   Submit Compute Proof
-          (AGT tensor vectors)      (CSTB hash + difficulty)
-                    |                       |
-                    +-----------+-----------+
-                                |
-                                v
-                      Finalize Attestation
-                      (Create permanent record)
-                                |
-                                v
-                    Combined Entropy ----> $OPTX Minting Allowance
-```
+| Topic | Status |
+|-------|--------|
+| **CompuStable / $CSTB** | **Not a product dependency.** Account field `cstb_mint` is a **legacy layout slot** written at `initialize`; it does not gate minting or prove an external PoW token. |
+| **`submit_compute_proof`** | Stores a **caller-supplied opaque hash** + difficulty floor. It does **not** verify an external CompuStable network. |
+| **Off-chain services** | AARON Router, MOJO, SpacetimeDB, marketing sites — separate repos / contracts unless scoped into the engagement. |
+| **EVM Tempo wallet** | Settlement convenience only; not part of these Solana programs. |
 
 ---
 
-## Token Ecosystem
+## What these programs do
 
-| Token | Mint | Network | Purpose |
-|-------|------|---------|---------|
-| `$JTX v2` | `JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe` | ✅ Mainnet | **Canonical** governance + access (Token-2022, 9 dec) |
-| `$JTX v1` | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` | Mainnet | Legacy — mint authority revoked |
-| `$OPTX` | `DSyauRAZwUd2BrTk3P8k2yUxxvcx5X4BBg3Gh3VbeRG3` | Devnet | Gaze attestation rewards (Token-2022, 6 dec) — mints live |
-| `$CSTB` | `4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL` | Devnet | DePIN validator token |
+### PoA Trust (`jtx_cstb_trust` module)
 
-### $OPTX Minting Formula
+Gaze-centric attestation pipeline on Solana:
 
-```
-optx_allowance = (gaze_entropy + compute_entropy) * difficulty * optx_per_entropy / 1000
-```
+1. `initiate_handshake` — open time-bounded handshake  
+2. `submit_gaze_attestation` — AGT tensor vectors + gaze proof hash (opaque; raw biometrics stay client-side)  
+3. `submit_compute_proof` — opaque compute hash + difficulty  
+4. `finalize_attestation` — permanent record + entropy / OPTX allowance accounting  
+5. `mint_optx` — mint against accumulated allowance (when mint/config is live for that environment)
 
-### AARON Risk Gating
+Also: config updates, pause, revoke, handshake close, attestation verify.
 
-```
-risk = (cog_risk * env_risk * emo_risk) / 10000
-require!(risk <= 7500)  // 75% threshold for safe minting
-```
+### Jett Vault (`jett_vault`)
 
----
+Community vault + AGT surface:
 
-## JTX Community Vault
-
-| Detail | Value |
-|--------|-------|
-| **Goal** | 5,874 SOL (~$781K at $133/SOL) |
-| **Phase 1 (2x OPTX)** | through August 31, 2026 |
-| **Phase 2 (1x OPTX)** | September 1 – December 31, 2026 |
-| **Refunds** | Enabled if goal not met by Phase 2 end |
-| **Custody** | Non-custodial — full refund if goal not met |
-| **Multisig** | 2-of-3 for emergency operations (Squads — in transition) |
-| **Live at** | [astroknots.space](https://astroknots.space) |
-
-### Subscription Tiers (Stripe direct + $JTX token gate)
-
-| Tier | Price | JTX Required | OPTX Rate |
-|------|-------|-------------|-----------|
-| MOJO | $8.88/mo | 12 JTX (1 year) | 1x |
-| DOJO | $28.88/6mo | 444 JTX (2 years) | 2x |
-| Space Cowboy | $88.88/mo | 1,111 JTX (lifetime) | 3x |
+- SOL / agent USDC contributions  
+- AGT attestation create / weight update  
+- Optional CPI link into PoA Trust  
+- AARON operator audit hash (immutable once set)  
+- Stake / subscription surfaces (prefer stake paths; some legacy ix may be fail-closed)  
+- Refunds, pause (multisig-gated), donor NFT mint (mpl-core)
 
 ---
 
-## Protocol Instructions
+## Tokens (context)
 
-### jtx_cstb_trust (DePIN Trust Protocol)
+| Token | Mint | Network | Notes |
+|-------|------|---------|--------|
+| **$JTX v2** (canonical) | `JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe` | Mainnet | Token-2022, 9 decimals — **use this** |
+| $JTX v1 (legacy) | `9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj` | Mainnet | Mint authority **revoked** |
+| $OPTX (devnet reward mint) | `DSyauRAZwUd2BrTk3P8k2yUxxvcx5X4BBg3Gh3VbeRG3` | Devnet | Gaze/attestation rewards in test environments |
+| $CSTB | — | — | **Not product.** Ignore for audits and client integrations. |
+
+**$JTX mint authority:** revoked (fixed supply).  
+**Meteora DLMM (liquidity):** `54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz`  
+**Buy:** [jettoptics.ai/buy](https://jettoptics.ai/buy)
+
+---
+
+## System context (off-chain)
+
+```text
+MOJO / Web  →  JETT Auth (AGT client)  →  AARON Router (edge)
+                                              │
+                    opaque proofs / x402  ─────┤
+                                              ▼
+                                    Solana mainnet
+                              PoA Trust  +  Jett Vault
+                                              │
+                                         SpacetimeDB / ops
+```
+
+| Name | Role |
+|------|------|
+| **JETT Auth** | Client-side gaze / biometric proof hashing |
+| **AARON** | Edge router: verification, payments, DePIN APIs |
+| **AGT** | COG / EMO / ENV tensor representation of attention |
+| **JOE** | Operator agent (Hermes / Grok) — not an on-chain program |
+| **OPTX** | Token + protocol network branding |
+
+Biometric **raw data never goes on-chain** — only 32-byte opaque hashes and fixed-point tensor fields.
+
+---
+
+## Instructions (summary)
+
+### PoA Trust
 
 | Instruction | Description |
 |-------------|-------------|
-| `initialize` | Initialize protocol with token mints and configuration |
-| `update_config` | Authority updates protocol parameters |
-| `create_user_entropy` | Create entropy tracking account for new user |
-| `initiate_handshake` | Start new attestation handshake (1hr expiry) |
-| `submit_gaze_attestation` | Submit AGT tensor proof (COG/EMO/ENV vectors) |
-| `submit_compute_proof` | Submit computational proof (CSTB hash + difficulty) |
-| `finalize_attestation` | Combine proofs, create permanent record, calculate OPTX allowance |
-| `mint_optx` | Mint $OPTX tokens based on accumulated entropy |
-| `verify_attestation` | Check if attestation is valid |
-| `revoke_attestation` | Invalidate an attestation |
-| `close_handshake` | Reclaim rent after expiry/completion |
-| `set_paused` | Emergency pause protocol (authority only) |
+| `initialize` | Protocol config + mint wiring |
+| `update_config` | Authority updates parameters |
+| `create_user_entropy` | Per-user entropy account |
+| `initiate_handshake` | Start handshake (expiry) |
+| `submit_gaze_attestation` | AGT gaze proof |
+| `submit_compute_proof` | Opaque compute hash + difficulty |
+| `finalize_attestation` | Finalize + entropy / allowance |
+| `mint_optx` | Mint against allowance |
+| `verify_attestation` / `revoke_attestation` | Validity controls |
+| `close_handshake` | Rent reclaim |
+| `set_paused` | Emergency pause |
 
-### jett_vault (Community Vault + AGT)
+### Jett Vault
 
 | Instruction | Description |
 |-------------|-------------|
-| `initialize_vault` | Set goal, deadlines, multisig signers |
-| `donate_sol` | Permissionless SOL donations |
-| `donate_usdc_agent` | Agent USDC contributions (non-refundable) |
-| `create_agt_attestation` | AGT tensor + biometric proof hash on-chain |
-| `update_agt_weights` | Adaptive learning: `w(t+1) = proj[(1-a)*w(t) + a*g(t)]` |
-| `link_attestation` | CPI to jtx_cstb_trust for gaze verification |
-| `aaron_audit` | AARON operator stamps immutable audit hash |
-| `set_subscription` | MOJO / DOJO / Space Cowboy tier |
-| `mint_optx` | Gated by subscription tier + AARON audit |
-| `claim_refund` | Proportional SOL refund if goal missed |
-| `set_paused` | 2-of-3 multisig emergency pause |
-| `revoke_attestation` | Founder/AARON can revoke |
-| `mint_donor_nft` | CPI to mpl-core CreateV2 — wallet-visible NFT receipt (B3.10) |
+| `initialize_vault` | Goal, deadlines, multisig roster |
+| `donate_sol` / `donate_usdc_agent` | Contributions |
+| `create_agt_attestation` / `update_agt_weights` | AGT state |
+| `link_attestation` | CPI toward PoA Trust |
+| `aaron_audit` | Operator risk / audit hash |
+| `stake_for_tier` (preferred) / legacy subscription paths | Access tiers |
+| `mint_optx` / `claim_refund` / `set_paused` / `mint_donor_nft` | Vault lifecycle |
+
+Exact accounts and constraints: see program sources under `programs/` and the TypeScript SDK under `sdk/`.
 
 ---
 
-## Account Structures
+## Account sketches
 
-### ProtocolConfig (PDA: `"protocol-config"`)
+### ProtocolConfig (PDA `"protocol-config"`)
 
 ```rust
 pub struct ProtocolConfig {
     pub authority: Pubkey,
     pub jtx_mint: Pubkey,
-    pub cstb_mint: Pubkey,
+    pub cstb_mint: Pubkey,   // legacy layout slot — unused for product gating
     pub optx_mint: Pubkey,
     pub total_handshakes: u64,
     pub total_attestations: u64,
@@ -253,86 +210,31 @@ pub struct ProtocolConfig {
 }
 ```
 
-### Handshake (PDA: `"handshake" + user + handshake_id`)
+### Handshake (PDA `"handshake" + user + handshake_id`)
 
-```rust
-pub struct Handshake {
-    pub initiator: Pubkey,
-    pub handshake_id: [u8; 32],
-    pub expires_at: i64,
-    pub gaze_verified: bool,
-    pub gaze_tensor_hash: [u8; 32],
-    pub cog_vector: [i16; 3],
-    pub emo_vector: [i16; 3],
-    pub env_vector: [i16; 3],
-    pub gaze_entropy: u64,
-    pub compute_verified: bool,
-    pub compute_proof_hash: [u8; 32],
-    pub difficulty_level: u8,
-    pub compute_entropy: u64,
-    pub finalized: bool,
-    pub claimed: bool,
-    pub bump: u8,
-}
-```
+Gaze vectors, compute proof hash, entropy fields, `finalized` / `claimed` flags — see `programs/jtx-cstb-trust/src/lib.rs`.
 
-### AGT Attestation (jett_vault)
+### AgtAttestation (vault)
 
-```rust
-pub struct AgtAttestation {
-    pub user: Pubkey,
-    pub cog_weight: u32,       // Fixed-point 1e6
-    pub emo_weight: u32,
-    pub env_weight: u32,
-    pub dual_key: u64,
-    pub bilinear_score: u64,
-    pub tensor_hash: [u8; 32],
-    pub attestation_hash: [u8; 32],
-    pub aaron_audit_hash: [u8; 32],  // Immutable once set
-    pub risk_score: u16,             // Basis points (0-10000)
-    pub subscription_tier: u8,
-    pub revoked: bool,
-    pub bump: u8,
-}
-```
+Fixed-point COG/EMO/ENV weights, tensor / attestation hashes, optional immutable `aaron_audit_hash`, risk score — see `programs/jett-vault/src/lib.rs`.
 
 ---
 
-## AGT Math
+## AGT (brief)
 
-The Agentive Gaze Tensor maps iris gaze to three cognitive regions:
+| Axis | Meaning |
+|------|---------|
+| **COG** | Cognitive / upper attention |
+| **EMO** | Affective / lower-left |
+| **ENV** | Environmental / lower-right |
 
-| Region | Zone | Description |
-|--------|------|-------------|
-| **COG** | Upper | Cognitive focus — analytical attention |
-| **EMO** | Lower-left | Emotional processing — empathetic awareness |
-| **ENV** | Lower-right | Environmental scanning — spatial awareness |
+Weights are projected onto the simplex (sum ≈ 1). Adaptive update:
 
-### Tensor Operations
-
-```
-// Simplex projection (weights sum to 1.0)
-w = simplex_project(gaze_tensor)
-
-// Adaptive update
-w(t+1) = simplex_project[(1 - alpha) * w(t) + alpha * g(t)]
-
-// Dual-space key
-k(t) = inner_product(w(t), session_seed)
-
-// Bilinear extension
-B(w, g) = sum(w_i * g_i * phi_i)
-
-// Tensor hash
-hash = sha256(w[0] || w[1] || w[2] || dual_key)
-
-// Attestation hash
-attestation = sha256(tensor_hash || biometric_proof_hash)
+```text
+w(t+1) = simplex_project[(1 - α) · w(t) + α · g(t)]
 ```
 
-### Entropy
-
-Shannon entropy of the AGT weight distribution. Higher entropy (more varied gaze pattern) = stronger authentication signal.
+Entropy of the weight distribution feeds attestation strength / allowance math (see program constants).
 
 ---
 
@@ -340,22 +242,23 @@ Shannon entropy of the AGT weight distribution. Higher entropy (more varied gaze
 
 ### Prerequisites
 
-- Rust 1.75+
-- Solana CLI 1.18+
-- Anchor 0.30.1+
-- Node.js 18+
+- Rust 1.75+  
+- Solana CLI 1.18+  
+- Anchor 0.30.1+  
+- Node.js 18+  
 
 ### Build
 
 ```bash
 yarn install
 
-# Mainnet build (default)
+# Mainnet-shaped IDs (default declare_id!)
 anchor build -p jtx-cstb-trust
 anchor build -p jett-vault
 
-# Devnet build (uses separate program ID — see Cargo.toml `devnet` feature)
+# Devnet IDs
 anchor build -p jett-vault -- --features devnet
+anchor build -p jtx-cstb-trust -- --features devnet   # if feature-gated in crate
 ```
 
 ### Test
@@ -364,135 +267,118 @@ anchor build -p jett-vault -- --features devnet
 anchor test
 ```
 
-### Deploy
+### Deploy / upgrade
 
 ```bash
-# Devnet
+# Devnet only without Squads
 solana config set --url devnet
 anchor deploy --provider.cluster devnet
 
-# Mainnet (CAREFUL — coordinate with Squads multisig)
-solana config set --url mainnet-beta
-anchor deploy --provider.cluster mainnet-beta
+# Mainnet: Squads-only process for upgrades
+# Do not use a personal keypair as upgrade authority.
 ```
 
 ---
 
 ## SDK
 
-Three TypeScript modules for integration:
-
-### JETT SDK (`sdk/jett-sdk.ts`)
-
-Core utilities for working with the protocol:
+| Module | Role |
+|--------|------|
+| `sdk/jett-sdk.ts` | AGT / biometric proof / AARON risk helpers |
+| `sdk/trust-client.ts` | Anchor client for PoA Trust program |
+| `sdk/vault-client.ts` | Anchor client for Jett Vault |
 
 ```typescript
-import { BiometricProof, AgtTensor, AaronRisk, JettAuth } from './sdk/jett-sdk'
+import { BiometricProof, AgtTensor, AaronRisk } from './sdk/jett-sdk'
 
-// Create AGT tensor from gaze data
 const tensor = AgtTensor.fromGaze(cogValue, envValue, emoValue)
-const updated = tensor.update(observation, alpha)  // Adaptive learning
-
-// Create a biometric proof (computed client-side, only hash goes on-chain)
 const proof = BiometricProof.generate(tensor, entropy)
-const proofHash = proof.hash()  // 32-byte opaque hash
-
-// AARON risk assessment
-const risk = AaronRisk.fromAxes(cogRisk, envRisk, emoRisk)
-if (risk.isSafe()) {  // <= 75% threshold
-  const auditHash = risk.computeAuditHash(attestationHash, timestamp)
-}
+const proofHash = proof.hash() // 32-byte opaque hash only on-chain
 ```
 
-### Trust Client (`sdk/trust-client.ts`)
+---
 
-Anchor program client for `jtx_cstb_trust`. Handles handshakes, attestations, and OPTX minting.
+## Security posture
 
-### Vault Client (`sdk/vault-client.ts`)
+### Engineering controls (in program design)
 
-Anchor program client for `jett_vault`. Handles vault deposits, AGT attestations, AARON audits, subscriptions, and refund logic.
+- Checked arithmetic / overflow guards  
+- Double-mint and double-finalize guards  
+- Handshake claim / replay flags  
+- Pause switches  
+- Opaque biometric hashes only  
+- AARON audit hash write-once behavior  
+- Vault multisig roster for sensitive vault ops  
+- No private keys in this repository  
+
+### Governance controls (mainnet)
+
+- **BPF upgrade authority = Squads vault `9Wss…` (2-of-3)**  
+- Retired single-key upgrade authority (`EFvg…`)  
+
+### Audit trail (internal / pre-engagement)
+
+| Version | Date | Notes |
+|---------|------|--------|
+| v2.0.0 | 2026-01-30 | Internal security pass |
+| v2.1.x | 2026-02 → 05 | Pre-mainnet + mainnet deploy review |
+| v2.2.0 | 2026-07-26 | Upgrade authority → Squads treasury (PoA) |
+
+For third-party engagements (e.g. Assure DeFi): freeze a **git tag + commit SHA**, publish IDL / verifiable builds, and attach this README + program sources. Optional brief: branch `cursor/audit-ready-poa-trust-93e3` / `docs/AUDIT.md` when merged.
 
 ---
 
-## Security
+## Mainnet checklist
 
-### Verified Protections
-
-- **Overflow protection** — all arithmetic uses `checked_add/sub/mul` with u128 intermediates
-- **Double-mint prevention** — allowance deducted BEFORE CPI transfer
-- **Double-finalization guard** — `finalized` flag prevents re-processing
-- **Replay attack protection** — `claimed` flag on handshakes
-- **Entropy overflow caps** — max 1 billion per attestation
-- **Emergency pause** — `set_paused` (authority for trust, 2-of-3 multisig for vault)
-- **Reentrancy guards** — Anchor default account validation
-- **CPI security** — validates all program IDs in cross-program invocations
-- **Biometric privacy** — proofs are opaque 32-byte hashes; raw data never leaves client
-- **AARON immutability** — audit hashes cannot be modified once written
-- **No private keys** in repository
-- **Admin operations** gated by founder wallet
-- **`aaron_operator` enforcement** — must be in `vault_config.multisig_signers` (B3.9)
-- **Helius RPC** read from env vars instead of hardcoded literals
-
-### Audit History
-
-- **v2.0.0** (2026-01-30) — HEDGEHOG MCP security audit (Grok 4.1 Fast Reasoning)
-- **v2.1.0** (2026-02-24) — Program ID alignment, SDK update, pre-mainnet review
-- **v2.1.1** (2026-05-17) — RPC creds moved to env, smoke-test scripts (B3.10)
-- **v2.1.2** (2026-05-23) — Mainnet deployment + treasury hardcoded tri-authority
+- [x] PoA Trust deployed (`85sqs…xXTF`)  
+- [x] Jett Vault deployed (`JTX5…EYA7`)  
+- [x] $JTX v2 live; mint authority revoked  
+- [x] Meteora pool seeded / LP locked (see trading runbooks)  
+- [x] Treasury / Squads vault `9Wss…` as operational treasury  
+- [x] **Upgrade authority → Squads `9Wss…` for both programs**  
+- [x] TypeScript SDK present  
+- [ ] External audit engagement (Assure DeFi or equivalent) — freeze tag  
+- [ ] Verifiable build artifacts published for freeze SHA  
+- [ ] First mainnet gaze attestation + OPTX path (product)  
 
 ---
 
-## Mainnet Checklist
+## Repository layout
 
-- [x] `jtx_cstb_trust` deployed to mainnet (`85sqs4u...XTF`)
-- [x] `jett_vault` deployed to mainnet (`JTX5uXTi...EYA7`)
-- [x] $JTX mint live + mint authority revoked
-- [x] Meteora DLMM pool created + seeded (`54ecLhTa...sRHMz`)
-- [x] LP locked 90 days
-- [x] Treasury wallet (`9WssA...YD7`) hardcoded tri-authority (JOE + Founder + Treasury)
-- [x] Tempo agent wallet (EVM) configured for x402 settlement
-- [x] Security audit v2.0.0 (overflow, replay, double-mint)
-- [x] Security audit v2.1.1 (RPC creds + B3 smoke tests)
-- [x] Security audit v2.1.2 (mainnet review)
-- [x] Program ID alignment (Anchor.toml + SDK + scripts)
-- [x] TypeScript SDK (jett-sdk, trust-client, vault-client)
-- [x] AARON Router live ([jettoptx-aaron-router](https://github.com/jettoptx/jettoptx-aaron-router))
-- [x] JOE Agent with Grok 4.20 vision
-- [x] mint_donor_nft via mpl-core CreateV2 (B3.10)
-- [ ] Trading goes live (2026-05-25 15:10 UTC)
-- [ ] Upgrade authority transferred to Squads multisig (see [SQUADS-RUNBOOK](https://github.com/jettoptx/jettoptx-saas/blob/main/SQUADS-RUNBOOK.md))
-- [ ] First gaze attestation on mainnet
-- [ ] First OPTX mint on mainnet
-- [ ] Genesis Jett Auth NFT (soulbound via Metaplex)
+```text
+programs/jtx-cstb-trust/   # PoA Trust (legacy crate name)
+programs/jett-vault/       # Community vault + AGT
+crates/shared-constants/   # Shared IDs / constants
+sdk/                       # TypeScript clients
+tests/                     # Anchor / bankrun tests
+scripts/                   # Deploy / init helpers
+docs/                      # Design + handoff notes
+```
 
 ---
 
 ## Links
 
-- **JETT OPTICS**: [jettoptics.ai](https://jettoptics.ai)
-- **ASTRO KNOTS Vault**: [astroknots.space](https://astroknots.space)
-- **Developer Docs**: [docs.jettoptx.dev](https://docs.jettoptx.dev)
-- **AARON Router**: [github.com/jettoptx/jettoptx-aaron-router](https://github.com/jettoptx/jettoptx-aaron-router)
-- **JettChat App**: [jettoptx.chat](https://jettoptx.chat)
-- **DOJO**: [jettoptx.chat](https://jettoptx.chat) (formerly /dojo)
-- **$JTX v2 on Solscan**: [solscan.io](https://solscan.io/token/JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe)
-- **$JTX v2 on Birdeye**: [birdeye.so](https://birdeye.so/token/JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe?chain=solana)
-- **$JTX v1 (legacy) on Solscan**: [solscan.io](https://solscan.io/token/9XpJiKEYzq5yDo5pJzRfjSRMPL2yPfDQXgiN7uYtBhUj)
-- **$JTX on DexScreener**: [dexscreener.com](https://dexscreener.com/solana/54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz)
-- **Buy $JTX**: [jettoptics.ai/buy](https://jettoptics.ai/buy)
-- **Meteora Pool**: [app.meteora.ag](https://app.meteora.ag/dlmm/54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz)
-- **DePIN Program**: [explorer.solana.com](https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF)
-- **Vault Program**: [explorer.solana.com](https://explorer.solana.com/address/JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7)
+| Resource | URL |
+|----------|-----|
+| Jett Optics | https://jettoptics.ai |
+| Buy $JTX | https://jettoptics.ai/buy |
+| Docs repo | https://github.com/jettoptx/jettoptx-docs |
+| Developer docs | https://docs.jettoptx.dev |
+| JettChat / DOJO | https://jettoptx.chat |
+| AARON (edge) | https://aaron.jettoptics.ai |
+| $JTX v2 Solscan | https://solscan.io/token/JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe |
+| Meteora pool | https://app.meteora.ag/dlmm/54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz |
+| PoA program | https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF |
+| Vault program | https://explorer.solana.com/address/JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7 |
 
 ---
 
 ## License
 
-MIT License — See [LICENSE](LICENSE) for details.
-
----
+MIT — see [LICENSE](LICENSE) if present; otherwise MIT as declared in crate manifests.
 
 ## Contact
 
-**Joshua Martinez** — [founder@jettoptics.ai](mailto:founder@jettoptics.ai)
-**X**: [@jettoptx](https://x.com/jettoptx)
+**Joshua Martinez** — [founder@jettoptics.ai](mailto:founder@jettoptics.ai)  
+**X:** [@jettoptx](https://x.com/jettoptx)
