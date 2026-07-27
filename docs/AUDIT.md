@@ -65,10 +65,25 @@ Recommended for auditor reproducibility:
 | $OPTX | `DSyauRAZwUd2BrTk3P8k2yUxxvcx5X4BBg3Gh3VbeRG3` | Devnet reward mint (Token-2022) |
 | $SGL | external | x402 compute micropayments — not deployed from this repo |
 
+## Upgrade authority (live)
+
+| Program | Upgrade authority |
+|---------|-------------------|
+| PoA Trust `85sqs…` | `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` (treasury / Squads vault) |
+| `jett_vault` `JTX5u…` | `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` |
+
+**Planned next (local signing):** `GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq` (SNS `astro.knots.sol`).
+
+## Mainnet PoA Trust config
+
+- Program deployed at `85sqs…`
+- `protocol-config` PDA `DSzQkiU8rx6XAkRYQDcgCibrdCdG5Yt5Hv7EXmKXkgqf` — **not initialized** on mainnet
+- Live initialized config is on **devnet** `79nQ…`
+
 ## Checklist before engagement
 
-- [ ] Freeze commit SHA + tag (e.g. `audit-v2.1.0`)
+- [x] Freeze commit SHA + tag (see git tag `audit-assure-2026-07-27` after merge)
 - [ ] Publish IDL + verifiable build artifacts for both programs
-- [ ] Confirm upgrade authority path (Squads transfer status)
-- [ ] Confirm mainnet trust config PDA initialization state
-- [ ] Provide this `docs/AUDIT.md` + `README.md` + program sources to the firm
+- [x] Document upgrade authority (`9Wss…`; planned `GtAkS5tY…`)
+- [x] Document mainnet trust config PDA initialization state (uninitialized)
+- [x] Provide this `docs/AUDIT.md` + `README.md` + program sources to the firm

@@ -3,7 +3,7 @@ name = "jtx-optx-devnet-poa-trustjoe"
 version = "0.1.0"
 description = "JTX OPTX Proof-of-Attention Trust — verified human-compute attestations on Solana"
 edition = "2021"
-license = "MIT"
+license = "Apache-2.0"
 repository = "https://github.com/jettoptx/jettoptx-poa-depin"
 
 [lib]

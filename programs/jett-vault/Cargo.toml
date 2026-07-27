@@ -3,7 +3,7 @@ name = "jett-vault"
 version = "2.0.0"
 description = "ASTRO KNOTS VAULT — AGT Attestation + Knot Invariants + AARON Audit + Fundraising"
 edition = "2021"
-license = "MIT"
+license = "Apache-2.0"
 repository = "https://github.com/jettoptx/jettoptx-poa-depin"
 
 [lib]

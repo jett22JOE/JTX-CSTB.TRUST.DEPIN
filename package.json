@@ -2,7 +2,7 @@
   "name": "jettoptx-poa-depin",
   "version": "0.1.0",
   "description": "JTX OPTX Proof-of-Attention DePIN \u2014 Anchor programs + TS SDK (trust + vault)",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/jettoptx/jettoptx-poa-depin"
