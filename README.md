@@ -27,7 +27,7 @@ Stack: **Anchor 0.30.1** · **Solana mainnet-beta** (+ devnet test IDs) · **Apa
 | **PoA Trust** | `programs/jtx-optx-devnet-poa-trustjoe` → `jtx_optx_devnet_poa_trustjoe` | `85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF` | [view](https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF) |
 | **Jett Vault** | `programs/jett-vault` → `jett_vault` | `JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7` | [view](https://explorer.solana.com/address/JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7) |
 
-\*Renamed from historical `jtx_optx_devnet_poa_trustjoe`. **Product scope is PoA / OPTX trust — not CompuStable / $CSTB.** See [Out of product scope](#out-of-product-scope).
+\*Renamed from historical `jtx_cstb_trust`. **Product scope is PoA / OPTX trust — not CompuStable / $CSTB.** See [Out of product scope](#out-of-product-scope).
 
 ### Devnet (`--features devnet`)
 
