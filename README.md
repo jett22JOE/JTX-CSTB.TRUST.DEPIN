@@ -42,36 +42,35 @@ Legacy program `91SqPNGRFrTgwSM3S7grZK8A6TCqn5STFGK4mAfqWMbQ` is **deprecated** 
 
 ## Upgrade authority (audit-critical)
 
-Both mainnet programs use the **Squads vault** as BPF upgrade authority. Upgrades require multisig approval — not a single hot wallet.
+Both mainnet programs use **NEW_JOE** (`GtAkS5tY…` / SNS `astro.knots.sol`) as BPF upgrade authority as of **2026-07-27**. Programs remain upgradeable (not immutable). Prior authority was the Squads treasury vault `9Wss…`.
 
 | Field | Value |
 |-------|--------|
-| **Upgrade authority** | `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` |
-| **Control** | Squads **2-of-3** multisig vault (treasury) |
-| **PoA Trust status** | Transferred **2026-07-26** (was single-key `EFvg…`, retired) |
-| **Jett Vault status** | Same Squads authority (already in place) |
-| **Immutable?** | No — upgradeable under governance only |
-| **Planned next** | Transfer to JOE wallet `GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq` (SNS `astro.knots.sol`) — local signing pending |
+| **Upgrade authority (live)** | `GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq` |
+| **SNS** | `astro.knots.sol` (NEW_JOE ops) |
+| **Previous authority** | `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` (Squads vault / treasury) |
+| **Control path** | Squads v4 multisig `97e8mY66…` executed the transfer (tx index **63**) |
+| **Immutable?** | No — upgradeable; authority is a governed ops key |
+| **Assure handover** | [`docs/HANDOVER-ASSURE-2026-07-27.md`](docs/HANDOVER-ASSURE-2026-07-27.md) |
 
 **Verify anytime:**
 
 ```bash
 solana program show 85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF --url mainnet-beta
-# Authority: 9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7
+# Authority: GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq
 
 solana program show JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7 --url mainnet-beta
-# Authority: 9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7
+# Authority: GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq
 ```
 
-**PoA authority transfer (record):**
+**Authority transfer record:**
 
-| | |
-|--|--|
-| Tx | [`4PDYvJX1q1sFzc9SggFj6AR9UXsPyUkBxDwmZoJWi93udcWDE3viD9HGqUECQ97KSS9x58T636tuKTGVBrQWoks1`](https://explorer.solana.com/tx/4PDYvJX1q1sFzc9SggFj6AR9UXsPyUkBxDwmZoJWi93udcWDE3viD9HGqUECQ97KSS9x58T636tuKTGVBrQWoks1) |
-| From | `EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk` (retired ops key) |
-| To | `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` |
+| Step | From → To | Tx / proposal |
+|------|-----------|---------------|
+| 2026-07-26 PoA | `EFvg…` → `9Wss…` | [`4PDYvJX1…`](https://explorer.solana.com/tx/4PDYvJX1q1sFzc9SggFj6AR9UXsPyUkBxDwmZoJWi93udcWDE3viD9HGqUECQ97KSS9x58T636tuKTGVBrQWoks1) |
+| 2026-07-27 PoA + Vault | `9Wss…` → `GtAk…` | Squads tx **#63** execute [`4MHKdACG…`](https://explorer.solana.com/tx/4MHKdACGdMXB6HmFGUdPMx6SVvMRy9fZx4HoXqSVF9HpQgFMdCs7GEay8LKYbfEKMGaXYy8kWAjSAia2kqoDsGEq) |
 
-> **Mainnet deploy / upgrade policy:** never deploy from a personal keypair. Coordinate every bytecode change through Squads.
+> **Mainnet deploy / upgrade policy:** never deploy from an unauthorized personal keypair. Coordinate bytecode changes with the live upgrade authority (`GtAk…`) and protocol governance.
 
 ---
 
@@ -314,8 +313,8 @@ const proofHash = proof.hash() // 32-byte opaque hash only on-chain
 
 ### Governance controls (mainnet)
 
-- **BPF upgrade authority = Squads vault `9Wss…` (2-of-3)**  
-- Retired single-key upgrade authority (`EFvg…`)  
+- **BPF upgrade authority = NEW_JOE `GtAkS5tY…` (`astro.knots.sol`)**  
+- Prior Squads vault authority (`9Wss…`) recorded; retired single-key ops key (`EFvg…`)  
 
 ### Audit trail (internal / pre-engagement)
 
@@ -324,6 +323,7 @@ const proofHash = proof.hash() // 32-byte opaque hash only on-chain
 | v2.0.0 | 2026-01-30 | Internal security pass |
 | v2.1.x | 2026-02 → 05 | Pre-mainnet + mainnet deploy review |
 | v2.2.0 | 2026-07-26 | Upgrade authority → Squads treasury (PoA) |
+| v2.3.0 | 2026-07-27 | Upgrade authority → NEW_JOE `GtAk…` (PoA + Vault; Assure freeze) |
 
 For third-party engagements (e.g. Assure DeFi): freeze a **git tag + commit SHA**, publish IDL / verifiable builds, and attach this README + program sources. Audit brief: [`docs/AUDIT.md`](docs/AUDIT.md).
 
@@ -336,7 +336,7 @@ For third-party engagements (e.g. Assure DeFi): freeze a **git tag + commit SHA*
 - [x] $JTX v2 live; mint authority revoked  
 - [x] Meteora pool seeded / LP locked (see trading runbooks)  
 - [x] Treasury / Squads vault `9Wss…` as operational treasury  
-- [x] **Upgrade authority → Squads `9Wss…` for both programs**  
+- [x] **Upgrade authority → NEW_JOE `GtAk…` for both programs** (2026-07-27)  
 - [x] TypeScript SDK present  
 - [ ] External audit engagement (Assure DeFi or equivalent) — freeze tag  
 - [ ] Verifiable build artifacts published for freeze SHA  
