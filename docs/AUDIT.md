@@ -69,10 +69,12 @@ Recommended for auditor reproducibility:
 
 | Program | Upgrade authority |
 |---------|-------------------|
-| PoA Trust `85sqs…` | `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` (treasury / Squads vault) |
-| `jett_vault` `JTX5u…` | `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` |
+| PoA Trust `85sqs…` | `GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq` (NEW_JOE / SNS `astro.knots.sol`) |
+| `jett_vault` `JTX5u…` | `GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq` (NEW_JOE / SNS `astro.knots.sol`) |
 
-**Planned next (local signing):** `GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq` (SNS `astro.knots.sol`).
+**Previous:** `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` (Squads vault / treasury).  
+**Transfer executed 2026-07-27** via Squads v4 multisig `97e8mY66…` transaction index **63** (2-of-2 approvals: Founder `FEUw…` + NEW_JOE `GtAk…`).  
+Programs remain **upgradeable** (not immutable). Full assure handover: [`docs/HANDOVER-ASSURE-2026-07-27.md`](HANDOVER-ASSURE-2026-07-27.md).
 
 ## Mainnet PoA Trust config
 
@@ -84,6 +86,6 @@ Recommended for auditor reproducibility:
 
 - [x] Freeze commit SHA + tag (see git tag `audit-assure-2026-07-27` after merge)
 - [ ] Publish IDL + verifiable build artifacts for both programs
-- [x] Document upgrade authority (`9Wss…`; planned `GtAkS5tY…`)
+- [x] Document upgrade authority (`GtAkS5tY…` live; prior `9Wss…` recorded)
 - [x] Document mainnet trust config PDA initialization state (uninitialized)
 - [x] Provide this `docs/AUDIT.md` + `README.md` + program sources to the firm
