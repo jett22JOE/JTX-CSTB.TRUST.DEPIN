@@ -1,11 +1,11 @@
 {
-  "name": "jtx-cstb-trust",
+  "name": "jettoptx-poa-depin",
   "version": "0.1.0",
-  "description": "JTX-CSTB Trust Protocol - Verified Human-Compute Attestations on Solana",
-  "license": "MIT",
+  "description": "JTX OPTX Proof-of-Attention DePIN \u2014 Anchor programs + TS SDK (trust + vault)",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jett22JOE/JTX-CSTB.TRUST.DEPIN"
+    "url": "https://github.com/jettoptx/jettoptx-poa-depin"
   },
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",

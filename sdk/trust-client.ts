@@ -35,7 +35,7 @@ export interface GazeData {
   gazeEntropy: bigint;
 }
 
-/** Compute proof data from CompuStable CSTB system */
+/** Opaque compute proof data (not CompuStable / $CSTB — caller-supplied hash attestation) */
 export interface ComputeProof {
   /** SHA-256 hash of the compute proof (32 bytes) */
   proofHash: Uint8Array;
@@ -78,6 +78,7 @@ export interface HandshakeStatus {
 export interface ProtocolConfigAccount {
   authority: PublicKey;
   jtxMint: PublicKey;
+  /** Legacy layout field (on-chain name cstb_mint); unused for gating */
   cstbMint: PublicKey;
   optxMint: PublicKey;
   totalHandshakes: bigint;
@@ -152,10 +153,16 @@ export const JTX_MINT_MAINNET = new PublicKey(
   "JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe"
 );
 
-/** $CSTB token mint on devnet */
-export const CSTB_MINT_DEVNET = new PublicKey(
+/**
+ * Legacy on-chain layout mint slot (devnet).
+ * @deprecated Not a product mint. Kept for initialize() account matching only.
+ */
+export const LEGACY_COMPUTE_MINT_DEVNET = new PublicKey(
   "4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL"
 );
+
+/** @deprecated Use LEGACY_COMPUTE_MINT_DEVNET */
+export const CSTB_MINT_DEVNET = LEGACY_COMPUTE_MINT_DEVNET;
 
 /** Default gaze threshold in centiseconds (2.22 seconds = "jett capture") */
 export const DEFAULT_GAZE_THRESHOLD = 222;
@@ -169,9 +176,14 @@ export const DEFAULT_ENTROPY_PER_ATTESTATION = 1000;
 /** Default OPTX per entropy (multiplied by 1000 for precision) */
 export const DEFAULT_OPTX_PER_ENTROPY = 1000;
 
-/** Program ID placeholder - update after deployment */
+/** PoA trust program ID (devnet) */
 export const PROGRAM_ID = new PublicKey(
   "79nQsecDspUWxvAMyJvK36EUty4yEoP5ssLvHZuNiugF"
+);
+
+/** PoA trust program ID (mainnet) */
+export const PROGRAM_ID_MAINNET = new PublicKey(
+  "85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF"
 );
 
 // ============================================================================
@@ -241,7 +253,7 @@ export function generateHandshakeId(): Uint8Array {
 // ============================================================================
 
 /**
- * JTX-CSTB Trust Protocol Client
+ * JTX OPTX Proof-of-Attention Trust Protocol Client
  *
  * Provides a high-level interface for interacting with the Trust Protocol
  * smart contract on Solana.
@@ -268,7 +280,7 @@ export class TrustClient {
    * Initialize the protocol with token mints and configuration
    * @param authority - The authority keypair that will control the protocol
    * @param jtxMint - $JTX token mint address
-   * @param cstbMint - $CSTB token mint address
+   * @param cstbMint - Legacy compute-mint layout slot (unused for gating)
    * @param optxMint - $OPTX token mint address (Token-2022)
    * @param options - Optional configuration overrides
    */
@@ -393,7 +405,7 @@ export class TrustClient {
   }
 
   /**
-   * Submit compute proof data (CSTB hash + difficulty)
+   * Submit opaque compute proof data (hash + difficulty)
    * @param user - The user's keypair
    * @param handshake - The handshake PDA address
    * @param proof - The compute proof data

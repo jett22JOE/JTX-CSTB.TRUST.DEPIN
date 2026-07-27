@@ -142,7 +142,7 @@ describe("jett-vault v2.1 — bankrun post-expiry unstake (case d)", function ()
     // we declare. Pass empty programs/accounts arrays — the SDK auto-loads
     // from Anchor.toml / target/deploy.
     context = await startAnchor(
-      "/Users/jettoptx/OPTX/astroknots-stack/joe-jtx-cstb-depin",
+      "/Users/jettoptx/OPTX/astroknots-stack/jettoptx-poa-depin",
       [{ name: "jett_vault", programId: VAULT_PROGRAM_ID }],
       [
         // Pre-fund our test wallets with 100 SOL each.

@@ -7,7 +7,7 @@ On-chain source of record for:
 1. **PoA Trust** — gaze attestation handshakes, compute proofs, OPTX entropy accounting  
 2. **Jett Vault** — community vault, AGT attestations, stake tiers, AARON audit stamps  
 
-Stack: **Anchor 0.30.1** · **Solana mainnet-beta** (+ devnet test IDs) · **MIT**
+Stack: **Anchor 0.30.1** · **Solana mainnet-beta** (+ devnet test IDs) · **Apache-2.0**
 
 | | |
 |--|--|
@@ -24,10 +24,10 @@ Stack: **Anchor 0.30.1** · **Solana mainnet-beta** (+ devnet test IDs) · **MIT
 
 | Role | On-disk crate / module* | Program ID | Explorer |
 |------|-------------------------|------------|----------|
-| **PoA Trust** | `programs/jtx-cstb-trust` → `jtx_cstb_trust` | `85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF` | [view](https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF) |
+| **PoA Trust** | `programs/jtx-optx-devnet-poa-trustjoe` → `jtx_optx_devnet_poa_trustjoe` | `85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF` | [view](https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF) |
 | **Jett Vault** | `programs/jett-vault` → `jett_vault` | `JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7` | [view](https://explorer.solana.com/address/JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7) |
 
-\*Crate names retain a historical `cstb` path for deploy continuity. **Product scope is PoA / OPTX trust — not CompuStable / $CSTB.** See [Out of product scope](#out-of-product-scope).
+\*Renamed from historical `jtx_optx_devnet_poa_trustjoe`. **Product scope is PoA / OPTX trust — not CompuStable / $CSTB.** See [Out of product scope](#out-of-product-scope).
 
 ### Devnet (`--features devnet`)
 
@@ -51,6 +51,7 @@ Both mainnet programs use the **Squads vault** as BPF upgrade authority. Upgrade
 | **PoA Trust status** | Transferred **2026-07-26** (was single-key `EFvg…`, retired) |
 | **Jett Vault status** | Same Squads authority (already in place) |
 | **Immutable?** | No — upgradeable under governance only |
+| **Planned next** | Transfer to JOE wallet `GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq` (SNS `astro.knots.sol`) — local signing pending |
 
 **Verify anytime:**
 
@@ -89,7 +90,7 @@ Be explicit with auditors and integrators:
 
 ## What these programs do
 
-### PoA Trust (`jtx_cstb_trust` module)
+### PoA Trust (`jtx_optx_devnet_poa_trustjoe` module)
 
 Gaze-centric attestation pipeline on Solana:
 
@@ -212,7 +213,7 @@ pub struct ProtocolConfig {
 
 ### Handshake (PDA `"handshake" + user + handshake_id`)
 
-Gaze vectors, compute proof hash, entropy fields, `finalized` / `claimed` flags — see `programs/jtx-cstb-trust/src/lib.rs`.
+Gaze vectors, compute proof hash, entropy fields, `finalized` / `claimed` flags — see `programs/jtx-optx-devnet-poa-trustjoe/src/lib.rs`.
 
 ### AgtAttestation (vault)
 
@@ -253,12 +254,12 @@ Entropy of the weight distribution feeds attestation strength / allowance math (
 yarn install
 
 # Mainnet-shaped IDs (default declare_id!)
-anchor build -p jtx-cstb-trust
+anchor build -p jtx-optx-devnet-poa-trustjoe
 anchor build -p jett-vault
 
 # Devnet IDs
 anchor build -p jett-vault -- --features devnet
-anchor build -p jtx-cstb-trust -- --features devnet   # if feature-gated in crate
+anchor build -p jtx-optx-devnet-poa-trustjoe -- --features devnet   # if feature-gated in crate
 ```
 
 ### Test
@@ -324,7 +325,7 @@ const proofHash = proof.hash() // 32-byte opaque hash only on-chain
 | v2.1.x | 2026-02 → 05 | Pre-mainnet + mainnet deploy review |
 | v2.2.0 | 2026-07-26 | Upgrade authority → Squads treasury (PoA) |
 
-For third-party engagements (e.g. Assure DeFi): freeze a **git tag + commit SHA**, publish IDL / verifiable builds, and attach this README + program sources. Optional brief: branch `cursor/audit-ready-poa-trust-93e3` / `docs/AUDIT.md` when merged.
+For third-party engagements (e.g. Assure DeFi): freeze a **git tag + commit SHA**, publish IDL / verifiable builds, and attach this README + program sources. Audit brief: [`docs/AUDIT.md`](docs/AUDIT.md).
 
 ---
 
@@ -346,7 +347,7 @@ For third-party engagements (e.g. Assure DeFi): freeze a **git tag + commit SHA*
 ## Repository layout
 
 ```text
-programs/jtx-cstb-trust/   # PoA Trust (legacy crate name)
+programs/jtx-optx-devnet-poa-trustjoe/   # PoA Trust (legacy crate name)
 programs/jett-vault/       # Community vault + AGT
 crates/shared-constants/   # Shared IDs / constants
 sdk/                       # TypeScript clients

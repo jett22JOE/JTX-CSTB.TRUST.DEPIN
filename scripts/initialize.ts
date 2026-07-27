@@ -1,9 +1,9 @@
 /**
- * Initialize JTX-CSTB Trust Protocol
+ * Initialize JTX OPTX PoA Trust Protocol
  *
  * This script initializes the protocol configuration with:
  * - $JTX token mint (mainnet)
- * - $CSTB token mint (devnet)
+ * - Legacy compute-mint layout slot (devnet; unused for gating)
  * - $OPTX token mint (deployed via deploy-optx.ts)
  * - Default thresholds and parameters
  *
@@ -25,7 +25,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 // Import IDL (generated after anchor build)
-// import { JtxCstbTrust } from "../target/types/jtx_cstb_trust";
+// import { JtxOptxDevnetPoaTrustjoe } from "../target/types/jtx_optx_devnet_poa_trustjoe";
 
 // ============================================================================
 // CONFIGURATION
@@ -35,7 +35,7 @@ import * as path from "path";
 const JTX_MINT_MAINNET = new PublicKey(
   "JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe"
 );
-const CSTB_MINT_DEVNET = new PublicKey(
+const LEGACY_COMPUTE_MINT_DEVNET = new PublicKey(
   "4waAAfTjqf5LNpj2TC5zoeiAgegVwKWoy4WiJgjdBkVL"
 );
 
@@ -105,7 +105,7 @@ async function main() {
   const { cluster, optxMint, programId } = parseArgs();
 
   console.log("========================================");
-  console.log("  JTX-CSTB Trust Protocol Initialization");
+  console.log("  JTX OPTX PoA Trust Protocol Initialization");
   console.log("========================================");
   console.log(`Cluster: ${cluster}`);
   console.log(`Program ID: ${programId}`);
@@ -155,7 +155,7 @@ async function main() {
 
   // Get program
   const program = new Program(
-    require("../target/idl/jtx_cstb_trust.json"),
+    require("../target/idl/jtx_optx_devnet_poa_trustjoe.json"),
     new PublicKey(programId),
     provider
   );
@@ -173,7 +173,7 @@ async function main() {
     console.log("Protocol is already initialized!");
     console.log(`  Authority: ${existingConfig.authority.toString()}`);
     console.log(`  JTX Mint: ${existingConfig.jtxMint.toString()}`);
-    console.log(`  CSTB Mint: ${existingConfig.cstbMint.toString()}`);
+    console.log(`  Legacy compute mint slot: ${existingConfig.cstbMint.toString()}`);
     console.log(`  OPTX Mint: ${existingConfig.optxMint.toString()}`);
     console.log(`  Total Handshakes: ${existingConfig.totalHandshakes.toString()}`);
     console.log(`  Total Attestations: ${existingConfig.totalAttestations.toString()}`);
@@ -185,12 +185,12 @@ async function main() {
 
   // Select token mints based on cluster
   const jtxMint = cluster === "localnet" ? Keypair.generate().publicKey : JTX_MINT_MAINNET;
-  const cstbMint = cluster === "mainnet" ? CSTB_MINT_DEVNET : CSTB_MINT_DEVNET;
+  const cstbMint = cluster === "mainnet" ? LEGACY_COMPUTE_MINT_DEVNET : LEGACY_COMPUTE_MINT_DEVNET;
 
   console.log("");
   console.log("Configuration:");
   console.log(`  JTX Mint: ${jtxMint.toString()}`);
-  console.log(`  CSTB Mint: ${cstbMint.toString()}`);
+  console.log(`  Legacy compute mint slot: ${cstbMint.toString()}`);
   console.log(`  OPTX Mint: ${optxMintPubkey.toString()}`);
   console.log(`  Gaze Threshold: ${DEFAULT_CONFIG.gazeThreshold} cs (2.22 seconds)`);
   console.log(`  Min Compute Difficulty: ${DEFAULT_CONFIG.computeDifficultyMin}`);
@@ -231,7 +231,7 @@ async function main() {
     console.log("Verified Protocol Config:");
     console.log(`  Authority: ${config.authority.toString()}`);
     console.log(`  JTX Mint: ${config.jtxMint.toString()}`);
-    console.log(`  CSTB Mint: ${config.cstbMint.toString()}`);
+    console.log(`  Legacy compute mint slot: ${config.cstbMint.toString()}`);
     console.log(`  OPTX Mint: ${config.optxMint.toString()}`);
     console.log(`  Gaze Threshold: ${config.gazeThreshold.toString()} cs`);
     console.log(`  Min Difficulty: ${config.computeDifficultyMin}`);
@@ -263,7 +263,7 @@ async function main() {
     console.log("  1. Users can now create entropy accounts");
     console.log("  2. Initiate handshakes for attestation");
     console.log("  3. Submit gaze attestations (AGT)");
-    console.log("  4. Submit compute proofs (CSTB)");
+    console.log("  4. Submit opaque compute proofs");
     console.log("  5. Finalize to earn entropy and OPTX allowance");
     console.log("  6. Mint OPTX tokens!");
   } catch (error) {

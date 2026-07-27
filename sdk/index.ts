@@ -1,8 +1,8 @@
 /**
- * JTX-CSTB Trust Protocol SDK
+ * JTX OPTX Proof-of-Attention Trust Protocol SDK
  *
- * A TypeScript SDK for interacting with the JTX-CSTB Trust Protocol
- * smart contract on Solana.
+ * TypeScript SDK for the PoA trust program + vault on Solana
+ * (jettoptx-poa-depin).
  *
  * @packageDocumentation
  */
@@ -24,12 +24,14 @@ export {
 
   // Constants
   JTX_MINT_MAINNET,
+  LEGACY_COMPUTE_MINT_DEVNET,
   CSTB_MINT_DEVNET,
   DEFAULT_GAZE_THRESHOLD,
   DEFAULT_COMPUTE_DIFFICULTY_MIN,
   DEFAULT_ENTROPY_PER_ATTESTATION,
   DEFAULT_OPTX_PER_ENTROPY,
   PROGRAM_ID,
+  PROGRAM_ID_MAINNET,
 
   // PDA helpers
   getProtocolConfigPDA,
