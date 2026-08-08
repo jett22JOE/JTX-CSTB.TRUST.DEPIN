@@ -15,6 +15,22 @@ Stack: **Anchor 0.30.1** · **Solana mainnet-beta** (+ devnet test IDs) · **Apa
 | Docs | [jettoptx-docs](https://github.com/jettoptx/jettoptx-docs) · [docs.jettoptx.dev](https://docs.jettoptx.dev) |
 | Edge API | AARON Router ([private](https://github.com/jettoptx/jettoptx-aaron-router)) · public edge [aaron.jettoptics.ai](https://aaron.jettoptics.ai) |
 | Product UI | [jettoptx.chat](https://jettoptx.chat) · [jtx.astroknots.space](https://jtx.astroknots.space) |
+| **Tokenomics** | [docs/TOKENOMICS.md](docs/TOKENOMICS.md) — escrow-native $OPTX model |
+
+---
+
+## $OPTX Model (summary)
+
+**$OPTX is an Attention Credit minted only on successful real gaze authentication (PIN + AGT).**
+
+- **Basic** tier: 0 real $OPTX (shows Potential only)
+- **Mojo / DOJO / Space Cowboy**: real $OPTX minted into allowance (escrow)
+- Allowance is released only when spent by agents in marketplaces
+- No hard user or supply caps — emission scales with real human attention + $JTX holdings
+
+Full details: [docs/TOKENOMICS.md](docs/TOKENOMICS.md)
+
+This design aligns with AgenC-style escrow + settlement rails. Jett Optics owns the biometric attestation layer; AgenC provides the neutral labor marketplace rails. Permission to interact with AgenC contracts has been confirmed.
 
 ---
 
@@ -62,15 +78,6 @@ solana program show 85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF --url mainnet-b
 solana program show JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7 --url mainnet-beta
 # Authority: GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq
 ```
-
-**Authority transfer record:**
-
-| Step | From → To | Tx / proposal |
-|------|-----------|---------------|
-| 2026-07-26 PoA | `EFvg…` → `9Wss…` | [`4PDYvJX1…`](https://explorer.solana.com/tx/4PDYvJX1q1sFzc9SggFj6AR9UXsPyUkBxDwmZoJWi93udcWDE3viD9HGqUECQ97KSS9x58T636tuKTGVBrQWoks1) |
-| 2026-07-27 PoA + Vault | `9Wss…` → `GtAk…` | Squads tx **#63** execute [`4MHKdACG…`](https://explorer.solana.com/tx/4MHKdACGdMXB6HmFGUdPMx6SVvMRy9fZx4HoXqSVF9HpQgFMdCs7GEay8LKYbfEKMGaXYy8kWAjSAia2kqoDsGEq) |
-
-> **Mainnet deploy / upgrade policy:** never deploy from an unauthorized personal keypair. Coordinate bytecode changes with the live upgrade authority (`GtAk…`) and protocol governance.
 
 ---
 
@@ -151,90 +158,6 @@ MOJO / Web  →  JETT Auth (AGT client)  →  AARON Router (edge)
 | **OPTX** | Token + protocol network branding |
 
 Biometric **raw data never goes on-chain** — only 32-byte opaque hashes and fixed-point tensor fields.
-
----
-
-## Instructions (summary)
-
-### PoA Trust
-
-| Instruction | Description |
-|-------------|-------------|
-| `initialize` | Protocol config + mint wiring |
-| `update_config` | Authority updates parameters |
-| `create_user_entropy` | Per-user entropy account |
-| `initiate_handshake` | Start handshake (expiry) |
-| `submit_gaze_attestation` | AGT gaze proof |
-| `submit_compute_proof` | Opaque compute hash + difficulty |
-| `finalize_attestation` | Finalize + entropy / allowance |
-| `mint_optx` | Mint against allowance |
-| `verify_attestation` / `revoke_attestation` | Validity controls |
-| `close_handshake` | Rent reclaim |
-| `set_paused` | Emergency pause |
-
-### Jett Vault
-
-| Instruction | Description |
-|-------------|-------------|
-| `initialize_vault` | Goal, deadlines, multisig roster |
-| `donate_sol` / `donate_usdc_agent` | Contributions |
-| `create_agt_attestation` / `update_agt_weights` | AGT state |
-| `link_attestation` | CPI toward PoA Trust |
-| `aaron_audit` | Operator risk / audit hash |
-| `stake_for_tier` (preferred) / legacy subscription paths | Access tiers |
-| `mint_optx` / `claim_refund` / `set_paused` / `mint_donor_nft` | Vault lifecycle |
-
-Exact accounts and constraints: see program sources under `programs/` and the TypeScript SDK under `sdk/`.
-
----
-
-## Account sketches
-
-### ProtocolConfig (PDA `"protocol-config"`)
-
-```rust
-pub struct ProtocolConfig {
-    pub authority: Pubkey,
-    pub jtx_mint: Pubkey,
-    pub cstb_mint: Pubkey,   // legacy layout slot — unused for product gating
-    pub optx_mint: Pubkey,
-    pub total_handshakes: u64,
-    pub total_attestations: u64,
-    pub total_optx_minted: u64,
-    pub gaze_threshold: u64,
-    pub compute_difficulty_min: u8,
-    pub entropy_per_attestation: u64,
-    pub optx_per_entropy: u64,
-    pub paused: bool,
-    pub bump: u8,
-}
-```
-
-### Handshake (PDA `"handshake" + user + handshake_id`)
-
-Gaze vectors, compute proof hash, entropy fields, `finalized` / `claimed` flags — see `programs/jtx-optx-devnet-poa-trustjoe/src/lib.rs`.
-
-### AgtAttestation (vault)
-
-Fixed-point COG/EMO/ENV weights, tensor / attestation hashes, optional immutable `aaron_audit_hash`, risk score — see `programs/jett-vault/src/lib.rs`.
-
----
-
-## AGT (brief)
-
-| Axis | Meaning |
-|------|---------|
-| **COG** | Cognitive / upper attention |
-| **EMO** | Affective / lower-left |
-| **ENV** | Environmental / lower-right |
-
-Weights are projected onto the simplex (sum ≈ 1). Adaptive update:
-
-```text
-w(t+1) = simplex_project[(1 - α) · w(t) + α · g(t)]
-```
-
-Entropy of the weight distribution feeds attestation strength / allowance math (see program constants).
 
 ---
 
@@ -353,7 +276,7 @@ crates/shared-constants/   # Shared IDs / constants
 sdk/                       # TypeScript clients
 tests/                     # Anchor / bankrun tests
 scripts/                   # Deploy / init helpers
-docs/                      # Design + handoff notes
+docs/                      # Design + handoff notes + TOKENOMICS.md
 ```
 
 ---
@@ -372,12 +295,13 @@ docs/                      # Design + handoff notes
 | Meteora pool | https://app.meteora.ag/dlmm/54ecLhTa8HZg1bhcDNWiddd8p7UN7jq4HLWeLr1sRHMz |
 | PoA program | https://explorer.solana.com/address/85sqs4upQiPrvk1NMuyfHVQoW1EGdgk8m2cQb7uMxXTF |
 | Vault program | https://explorer.solana.com/address/JTX5uXTiZ1M3hJkjv5Cp5F8dr3Jc7nhJbQjCFmgEYA7 |
+| **Tokenomics** | [docs/TOKENOMICS.md](docs/TOKENOMICS.md) |
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE) if present; otherwise MIT as declared in crate manifests.
+Apache-2.0 — see [LICENSE](LICENSE).
 
 ## Contact
 
