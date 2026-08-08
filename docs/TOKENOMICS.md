@@ -23,7 +23,7 @@ Only a successful gaze authentication (PIN + AGT tensors + optional compute proo
 | $JTX Tier                  | Real $OPTX | What the user sees                          |
 |----------------------------|------------|---------------------------------------------|
 | **Basic** (≥1 or free)     | **0**      | Live “Potential $OPTX” counter only         |
-| **Mojo** (≥12)             | 15 base    | Real allowance + earned amount              |
+| **Mojo** (≥12)             | 10 base    | Real allowance + earned amount              |
 | **DOJO** (≥444)            | 20 base    | Real allowance + earned amount              |
 | **Space Cowboy** (≥1,111 or NFT) | 30 base | Real allowance + earned amount + priority |
 
@@ -75,7 +75,7 @@ Current on-chain surface already supports the allowance model:
 Product enforcement of **Basic = 0** can be realized by:
 
 1. **Preferred (client + edge):** AARON / MOJO / JETT Auth check live $JTX balance and only submit meaningful entropy / call finalize for paid tiers. Basic users still complete the handshake UX but receive Potential UI only.
-2. **On-chain (future upgrade):** Read user’s $JTX token account in `finalize_attestation` and apply a tier multiplier (0× / 1.5× / 2× / 3×). Requires careful account layout and upgrade under the live NEW_JOE authority.
+2. **On-chain (future upgrade):** Read user’s $JTX token account in `finalize_attestation` and apply a tier multiplier (0× / 1× / 2× / 3×). Requires careful account layout and upgrade under the live NEW_JOE authority.
 
 Either path preserves the existing double-mint, pause, and replay protections.
 
@@ -86,7 +86,7 @@ Either path preserves the existing double-mint, pause, and replay protections.
 **$OPTX – Proof-of-Attention Utility**  
 - Minted only on successful gaze authentication (PIN + AGT)  
 - Basic: 0 real $OPTX (shows Potential only)  
-- Mojo / DOJO / Space Cowboy: real $OPTX into escrow  
+- Mojo 10 / DOJO 20 / Space Cowboy 30 base rates into escrow  
 - Released from escrow only when spent by agents  
 - No hard supply or user caps — scales with real attention  
 
