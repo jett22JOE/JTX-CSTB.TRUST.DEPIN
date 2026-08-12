@@ -73,7 +73,7 @@ Recommended for auditor reproducibility:
 | `jett_vault` `JTX5u…` | `GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq` (NEW_JOE / SNS `astro.knots.sol`) |
 
 **Previous:** `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` (Squads vault / treasury).  
-**Transfer executed 2026-07-27** via Squads v4 multisig `97e8mY66…` transaction index **63** (2-of-2 approvals: Founder `FEUw…` + NEW_JOE `GtAk…`).  
+**Transfer executed 2026-07-27** via Squads v4 multisig `97e8mY66…` transaction index **63** (2-of-2 approvals: Founder member + NEW_JOE `GtAk…`; personal founder pubkey redacted in the public handover).  
 Programs remain **upgradeable** (not immutable). Full assure handover: [`docs/HANDOVER-ASSURE-2026-07-27.md`](HANDOVER-ASSURE-2026-07-27.md).
 
 ## Mainnet PoA Trust config
