@@ -7,6 +7,8 @@
 
 This document is the **post-authority-transfer** handover for Assure. On-chain upgrade authority for both in-scope mainnet programs is live under **NEW_JOE**. Programs are **not immutable**.
 
+> **Public-tree note:** Personal Squads member / founder approver pubkeys are **redacted** below. Program IDs, ProgramData accounts, live upgrade authority, Squads vault/multisig, treasury context, and explorer transaction signatures remain so integrators and auditors can verify on-chain facts. Full approver membership is recoverable from the linked Squads proposal / approve transactions on explorers.
+
 ---
 
 ## 1. Executive status
@@ -88,7 +90,7 @@ Transfer was **not** a raw single-key CLI call against a hot `9Wss` keyfile.
 | Transaction index | **63** |
 | Proposal PDA | `JDipjwk7zMsVeanzXBNrbJNJxDYQCfir5ZLugtbafYyk` |
 | Proposal status | **Executed** |
-| Approvers | `FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H` (Founder), `GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq` (NEW_JOE) |
+| Approvers | Founder member *(personal pubkey redacted — see approve txs below)*; `GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq` (NEW_JOE) |
 | Inner instructions | Two BPF Loader `SetAuthority` → `Some(GtAk…)` |
 
 ### Signatures
@@ -97,7 +99,7 @@ Transfer was **not** a raw single-key CLI call against a hot `9Wss` keyfile.
 |------|-----------|
 | `vaultTransactionCreate` | [`632aEo2F6tmigH45SGJ6bvCh57NgSFRc2agpnpREfmYBWUcFQqpAtLdJAX31kju5cZo44EWSUDWnYAPJYxd177GM`](https://explorer.solana.com/tx/632aEo2F6tmigH45SGJ6bvCh57NgSFRc2agpnpREfmYBWUcFQqpAtLdJAX31kju5cZo44EWSUDWnYAPJYxd177GM) |
 | `proposalCreate` | [`2JxbjUMqDZFSyaQrS7nDKHy5Z7dq5ni11RTGGibz1eCHZpkiiVxLEAK191fQ5cw9VPzQBNexdaVh78LDpGJhxVhM`](https://explorer.solana.com/tx/2JxbjUMqDZFSyaQrS7nDKHy5Z7dq5ni11RTGGibz1eCHZpkiiVxLEAK191fQ5cw9VPzQBNexdaVh78LDpGJhxVhM) |
-| Founder approve | [`5oQtJC7xvgdXueqPwmrjLki3WsqkPBp5xJ6Rrvw3yyvYUyaWaUsVfJMkYxATYTfu5URM377aDdwqbp5ZRfFkuDdc`](https://explorer.solana.com/tx/5oQtJC7xvgdXueqPwmrjLki3WsqkPBp5xJ6Rrvw3yyvYUyaWaUsVfJMkYxATYTfu5URM377aDdwqbp5ZRfFkuDdc) |
+| Founder-member approve *(signer pubkey redacted)* | [`5oQtJC7xvgdXueqPwmrjLki3WsqkPBp5xJ6Rrvw3yyvYUyaWaUsVfJMkYxATYTfu5URM377aDdwqbp5ZRfFkuDdc`](https://explorer.solana.com/tx/5oQtJC7xvgdXueqPwmrjLki3WsqkPBp5xJ6Rrvw3yyvYUyaWaUsVfJMkYxATYTfu5URM377aDdwqbp5ZRfFkuDdc) |
 | NEW_JOE approve (prop PDA) | [`4hDESEfxxfrJ7M4d1NiFd914FADrcSqzLkyN93wN84rPRkdxB1YKh5tcZEix7FxxDiTTXFHTN9mSD9dNMWMXoxLk`](https://explorer.solana.com/tx/4hDESEfxxfrJ7M4d1NiFd914FADrcSqzLkyN93wN84rPRkdxB1YKh5tcZEix7FxxDiTTXFHTN9mSD9dNMWMXoxLk) |
 | **Execute (authorities applied)** | [`4MHKdACGdMXB6HmFGUdPMx6SVvMRy9fZx4HoXqSVF9HpQgFMdCs7GEay8LKYbfEKMGaXYy8kWAjSAia2kqoDsGEq`](https://explorer.solana.com/tx/4MHKdACGdMXB6HmFGUdPMx6SVvMRy9fZx4HoXqSVF9HpQgFMdCs7GEay8LKYbfEKMGaXYy8kWAjSAia2kqoDsGEq) |
 
@@ -119,7 +121,7 @@ New authority Some(GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq)
 | NEW_JOE / upgrade authority | `GtAkS5tYaqi6XQrinuFyqKQkK29SFQsUY9gQ2XpLXLwq` | `astro.knots.sol` |
 | Squads vault / treasury | `9WssADzftzptNnMHLzPZYAFApUfE7qLYChicH1Wh6YD7` | `spacecowboys.sol`; still treasury / NFT authorities as applicable |
 | Squads multisig | `97e8mY66StgYXRuK7Je2t9RAbfosozauSo9avjZzY4GA` | Owner program `SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf` |
-| Founder | `FEUwuvXbbSYTCEhhqgAt2viTsEnromNNDsapoFvyfy3H` | Squads member; approved tx 63 |
+| Founder / personal Squads member | *(redacted in public tree)* | Recoverable from founder-member approve tx for index 63 |
 | Retired ops key | `EFvgELE1Hb4PC5tbPTAe8v1uEDGee8nwYBMCU42bZRGk` | Do not use |
 | $JTX v2 mint | `JTXGnx83s2QZ2MwYkRD1cBKrqQKSdG5oe8vSYW5Zjoe` | Token-2022; context only |
 

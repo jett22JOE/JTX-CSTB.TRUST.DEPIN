@@ -1,7 +1,8 @@
 // ============================================================================
 // JETT-VAULT v2.1 — Stake Subsystem Test Suite (B3.6)
 // ============================================================================
-// Covers the 9 cases listed in docs/session-handoff-2026-05-01.md §5:
+// Covers the 9 stake-subsystem cases from the v2.1 design
+// (see docs/stake-subsystem-design.md):
 //   (a) stake_for_tier success path
 //   (b) stake_for_tier insufficient balance reject
 //   (c) unstake before expiry reject
